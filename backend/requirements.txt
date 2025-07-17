@@ -1,0 +1,10 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-docx==0.8.11
+python-multipart==0.0.6
+pydantic==2.5.0
+jinja2==3.1.2
+markdown==3.5.1
+beautifulsoup4==4.12.2
+docx2txt==0.8
+python-dateutil==2.8.2

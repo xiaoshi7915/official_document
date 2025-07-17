@@ -1,0 +1,14 @@
+{
+  "content": "关于加强办公管理的通知。各部门请认真执行。",
+  "template_type": "tongzhi",
+  "metadata": {
+    "title": "关于加强办公管理的通知",
+    "sender": "办公室",
+    "recipient": "各部门",
+    "document_number": "办发2025-1号",
+    "urgency_level": "一般",
+    "security_level": "一般",
+    "date": "2025年1月16日",
+    "format_type": "plain"
+  }
+}
