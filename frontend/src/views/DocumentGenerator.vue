@@ -54,7 +54,7 @@
             <template #header>
               <div class="card-header">
                 <span>公文信息</span>
-                <el-button type="text" @click="uploadFile">
+                <el-button link @click="uploadFile">
                   <el-icon>
                     <Upload />
                   </el-icon>
@@ -147,7 +147,7 @@
                   <el-form-item label="标题" prop="title">
                     <el-input v-model="form.title" placeholder="请输入公文标题" />
                     <div class="field-actions">
-                      <el-button type="text" @click="generateTitleFromContent" :disabled="!form.content">
+                      <el-button link @click="generateTitleFromContent" :disabled="!form.content">
                         <el-icon>
                           <MagicIcon />
                         </el-icon> 从正文生成标题
@@ -162,12 +162,12 @@
                   <el-form-item label="正文内容" prop="content">
                     <el-input v-model="form.content" type="textarea" :rows="12" placeholder="请输入公文正文内容，支持Markdown格式" />
                     <div class="field-actions">
-                      <el-button type="text" @click="generateContentFromTopic">
+                      <el-button link @click="generateContentFromTopic">
                         <el-icon>
                           <MagicIcon />
                         </el-icon> 从主题生成正文
                       </el-button>
-                      <el-button type="text" @click="uploadFile">
+                      <el-button link @click="uploadFile">
                         <el-icon>
                           <Upload />
                         </el-icon> 上传文件作为正文
@@ -214,8 +214,8 @@
 
               <el-form-item label="输入格式">
                 <el-radio-group v-model="form.formatType">
-                  <el-radio label="markdown">Markdown</el-radio>
-                  <el-radio label="plain">纯文本</el-radio>
+                                  <el-radio :value="'markdown'">Markdown</el-radio>
+                <el-radio :value="'plain'">纯文本</el-radio>
                 </el-radio-group>
               </el-form-item>
 
@@ -283,11 +283,18 @@
                   <div class="recent-title">{{ doc.title }}</div>
                   <div class="recent-time">{{ doc.createTime }}</div>
                 </div>
-                <el-button type="text" @click="downloadDocument(doc.downloadUrl)">
-                  <el-icon>
-                    <Download />
-                  </el-icon>
-                </el-button>
+                <div class="recent-actions">
+                  <el-button link @click="previewDocument(doc.previewUrl)" title="预览">
+                    <el-icon>
+                      <View />
+                    </el-icon>
+                  </el-button>
+                  <el-button link @click="downloadDocument(doc.downloadUrl)" title="下载">
+                    <el-icon>
+                      <Download />
+                    </el-icon>
+                  </el-button>
+                </div>
               </div>
             </div>
           </el-card>
@@ -547,11 +554,29 @@ export default {
               id: Date.now(),
               title: form.title,
               createTime: new Date().toLocaleString(),
-              downloadUrl: result.download_url
+              downloadUrl: result.download_url,
+              previewUrl: result.download_url.replace('/download/', '/preview/')
             })
   
-            // 自动下载
-            downloadDocument(result.download_url)
+            // 显示预览和下载选项
+            ElMessageBox.confirm(
+              '公文生成成功！您可以选择预览或直接下载文档。',
+              '生成成功',
+              {
+                confirmButtonText: '预览文档',
+                cancelButtonText: '直接下载',
+                distinguishCancelAndClose: true,
+                type: 'success'
+              }
+            ).then(() => {
+              // 预览文档
+              window.open(result.download_url.replace('/download/', '/preview/'), '_blank')
+            }).catch((action) => {
+              if (action === 'cancel') {
+                // 直接下载
+                downloadDocument(result.download_url)
+              }
+            })
           } else {
             ElMessage.error(result.message || '生成失败')
           }
@@ -573,8 +598,10 @@ export default {
       }
     }
 
-    const previewDocument = () => {
-      if (form.templateType) {
+    const previewDocument = (previewUrl) => {
+      if (previewUrl) {
+        window.open(previewUrl, '_blank')
+      } else if (form.templateType) {
         window.open(`/preview/${form.templateType}`, '_blank')
       }
     }
@@ -1103,6 +1130,11 @@ export default {
 .recent-time {
   font-size: 12px;
   color: #909399;
+}
+
+.recent-actions {
+  display: flex;
+  gap: 8px;
 }
 
 :deep(.el-upload-dragger) {

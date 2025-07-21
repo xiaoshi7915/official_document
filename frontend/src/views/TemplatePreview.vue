@@ -359,30 +359,38 @@ export default {
     onMounted(async () => {
       console.log('模板预览组件加载，模板ID:', templateId)
 
-      // 首先尝试从本地数据加载模板信息
-      if (templateData[templateId]) {
-        templateInfo.value = {
-          id: templateId,
-          ...templateData[templateId]
-        }
-        console.log('已从本地加载模板数据:', templateInfo.value)
-      } else {
-        // 如果本地没有，尝试从API加载模板信息
-        console.log('本地未找到模板数据，尝试从API加载')
-        const loaded = await loadTemplateFromApi()
+      try {
+        // 首先尝试从本地数据加载模板信息
+        if (templateData[templateId]) {
+          templateInfo.value = {
+            id: templateId,
+            ...templateData[templateId]
+          }
+          console.log('已从本地加载模板数据:', templateInfo.value)
+        } else {
+          // 如果本地没有，尝试从API加载模板信息
+          console.log('本地未找到模板数据，尝试从API加载')
+          const loaded = await loadTemplateFromApi()
 
-        if (!loaded) {
-          console.error('未找到模板数据:', templateId)
-          ElMessage.error('未找到模板数据，将返回首页')
-          setTimeout(() => {
-            router.push('/')
-          }, 1500)
-          return
+          if (!loaded) {
+            console.error('未找到模板数据:', templateId)
+            ElMessage.error('未找到模板数据，将返回首页')
+            setTimeout(() => {
+              router.push('/')
+            }, 1500)
+            return
+          }
         }
+
+        // 加载模板图片
+        await loadTemplateImages()
+      } catch (error) {
+        console.error('模板预览组件加载失败:', error)
+        ElMessage.error('模板预览加载失败，将返回首页')
+        setTimeout(() => {
+          router.push('/')
+        }, 1500)
       }
-
-      // 加载模板图片
-      await loadTemplateImages()
     })
 
     // 修改loadTemplateContent函数，同时加载HTML内容

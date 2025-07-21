@@ -97,7 +97,7 @@ npm install
 后端启动：
 ```bash
 cd backend
-uvicorn main:app --reload --host 0.0.0.0 --port 5000
+uvicorn main:app --reload --host 0.0.0.0 --port 5002
 ```
 
 前端启动：
@@ -106,7 +106,7 @@ cd frontend
 npm run dev
 ```
 
-访问地址：http://localhost:5173
+访问地址：http://localhost:8081
 
 ## 项目结构
 
