@@ -38,7 +38,7 @@ if not exist temp mkdir temp
 
 echo.
 echo 启动后端服务...
-start "FastAPI Backend" cmd /k "cd /d %cd% && venv\Scripts\activate.bat && uvicorn main:app --reload --host 0.0.0.0 --port 8000"
+start "Backend Server" cmd /k "cd /d %cd% && venv\Scripts\activate.bat && python main.py"
 
 cd ..
 
@@ -58,8 +58,8 @@ cd ..
 
 echo.
 echo 服务启动完成！
-echo 后端API: http://localhost:8000
-echo 前端界面: http://localhost:3000
+echo 后端API: http://localhost:5000
+echo 前端界面: http://localhost:5173
 echo.
 echo 按任意键退出...
 pause

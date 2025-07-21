@@ -78,59 +78,139 @@
                 </el-select>
               </el-form-item>
 
-              <!-- 基本信息 -->
-              <el-form-item label="标题" prop="title">
-                <el-input v-model="form.title" placeholder="请输入公文标题" />
-              </el-form-item>
-
-              <el-form-item label="发文机关" prop="sender">
-                <el-input v-model="form.sender" placeholder="请输入发文机关名称" />
-              </el-form-item>
-
-              <el-form-item label="收文机关" prop="recipient">
-                <el-input v-model="form.recipient" placeholder="请输入收文机关名称（可选）" />
-              </el-form-item>
-
-              <el-row :gutter="20">
-                <el-col :span="12">
-                  <el-form-item label="文号" prop="documentNumber">
-                    <el-input v-model="form.documentNumber" placeholder="如：京政发〔2025〕1号" />
+              <!-- 公文字段折叠面板 -->
+              <el-collapse v-model="activeCollapse">
+                <!-- 版头 -->
+                <el-collapse-item title="版头" name="header">
+                  <el-form-item label="份号" prop="copyNumber">
+                    <el-input v-model="form.copyNumber" placeholder="请输入份号" />
                   </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="发文日期" prop="date">
-                    <el-date-picker v-model="form.date" type="date" placeholder="选择日期" format="YYYY年MM月DD日"
-                      value-format="YYYY年MM月DD日" style="width: 100%" />
-                  </el-form-item>
-                </el-col>
-              </el-row>
 
-              <el-row :gutter="20">
-                <el-col :span="12">
-                  <el-form-item label="紧急程度">
+                  <!-- 密级和保密期限 -->
+                  <el-row :gutter="20">
+                    <el-col :span="12">
+                      <el-form-item label="密级" prop="securityLevel">
+                        <el-select v-model="form.securityLevel" placeholder="选择密级">
+                          <el-option label="绝密" value="绝密" />
+                          <el-option label="机密" value="机密" />
+                          <el-option label="秘密" value="秘密" />
+                          <el-option label="一般" value="一般" />
+                        </el-select>
+                      </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                      <el-form-item label="保密期限" prop="securityPeriod">
+                        <el-input v-model="form.securityPeriod" placeholder="请输入保密期限" />
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+
+                  <el-form-item label="紧急程度" prop="urgencyLevel">
                     <el-select v-model="form.urgencyLevel" placeholder="选择紧急程度">
                       <el-option label="特急" value="特急" />
                       <el-option label="急件" value="急件" />
                       <el-option label="一般" value="一般" />
                     </el-select>
                   </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="密级">
-                    <el-select v-model="form.securityLevel" placeholder="选择密级">
-                      <el-option label="绝密" value="绝密" />
-                      <el-option label="机密" value="机密" />
-                      <el-option label="秘密" value="秘密" />
-                      <el-option label="一般" value="一般" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-              </el-row>
 
-              <!-- 正文内容 -->
-              <el-form-item label="正文内容" prop="content">
-                <el-input v-model="form.content" type="textarea" :rows="12" placeholder="请输入公文正文内容，支持Markdown格式" />
-              </el-form-item>
+                  <!-- 发文机关标志 -->
+                  <el-form-item label="发文机关名称" prop="sender">
+                    <el-input v-model="form.sender" placeholder="请输入发文机关名称" />
+                  </el-form-item>
+
+                  <el-form-item label="标志" prop="senderSymbol">
+                    <el-input v-model="form.senderSymbol" placeholder="请输入标志" />
+                  </el-form-item>
+
+                  <!-- 发文字号 -->
+                  <el-row :gutter="20">
+                    <el-col :span="8">
+                      <el-form-item label="发文机关代字" prop="senderCode">
+                        <el-input v-model="form.senderCode" placeholder="如：京政发" />
+                      </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                      <el-form-item label="年份" prop="year">
+                        <el-input v-model="form.year" placeholder="如：2025" />
+                      </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                      <el-form-item label="发文顺序号" prop="serialNumber">
+                        <el-input v-model="form.serialNumber" placeholder="如：1" />
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                </el-collapse-item>
+
+                <!-- 主体 -->
+                <el-collapse-item title="主体" name="body">
+                  <el-form-item label="标题" prop="title">
+                    <el-input v-model="form.title" placeholder="请输入公文标题" />
+                    <div class="field-actions">
+                      <el-button type="text" @click="generateTitleFromContent" :disabled="!form.content">
+                        <el-icon>
+                          <MagicIcon />
+                        </el-icon> 从正文生成标题
+                      </el-button>
+                    </div>
+                  </el-form-item>
+
+                  <el-form-item label="主送机关" prop="recipient">
+                    <el-input v-model="form.recipient" placeholder="请输入主送机关名称" />
+                  </el-form-item>
+
+                  <el-form-item label="正文内容" prop="content">
+                    <el-input v-model="form.content" type="textarea" :rows="12" placeholder="请输入公文正文内容，支持Markdown格式" />
+                    <div class="field-actions">
+                      <el-button type="text" @click="generateContentFromTopic">
+                        <el-icon>
+                          <MagicIcon />
+                        </el-icon> 从主题生成正文
+                      </el-button>
+                      <el-button type="text" @click="uploadFile">
+                        <el-icon>
+                          <Upload />
+                        </el-icon> 上传文件作为正文
+                      </el-button>
+                    </div>
+                  </el-form-item>
+                </el-collapse-item>
+
+                <!-- 发文机关或签发人署名 -->
+                <el-collapse-item title="发文机关或签发人署名" name="signature">
+                  <el-form-item label="发文机关署名" prop="senderSignature">
+                    <el-input v-model="form.senderSignature" placeholder="请输入发文机关署名" />
+                  </el-form-item>
+
+                  <el-form-item label="成文日期" prop="date">
+                    <el-date-picker v-model="form.date" type="date" placeholder="选择日期" format="YYYY年MM月DD日"
+                      value-format="YYYY年MM月DD日" style="width: 100%" />
+                  </el-form-item>
+
+                  <el-form-item label="附注" prop="notes">
+                    <el-input v-model="form.notes" placeholder="请输入附注" />
+                  </el-form-item>
+                </el-collapse-item>
+
+                <!-- 版记 -->
+                <el-collapse-item title="版记" name="footer">
+                  <el-form-item label="抄送机关" prop="copyTo">
+                    <el-input v-model="form.copyTo" type="textarea" :rows="3" placeholder="请输入抄送机关，多个机关请用逗号分隔" />
+                  </el-form-item>
+                </el-collapse-item>
+
+                <!-- 印发机关和印发日期 -->
+                <el-collapse-item title="印发机关和印发日期" name="printing">
+                  <el-form-item label="印发机关" prop="printingOrg">
+                    <el-input v-model="form.printingOrg" placeholder="请输入印发机关" />
+                  </el-form-item>
+
+                  <el-form-item label="印发日期" prop="printingDate">
+                    <el-date-picker v-model="form.printingDate" type="date" placeholder="选择印发日期" format="YYYY年MM月DD日"
+                      value-format="YYYY年MM月DD日" style="width: 100%" />
+                  </el-form-item>
+                </el-collapse-item>
+              </el-collapse>
 
               <el-form-item label="输入格式">
                 <el-radio-group v-model="form.formatType">
@@ -218,7 +298,7 @@
     <!-- 文件上传对话框 -->
     <el-dialog v-model="uploadDialogVisible" title="上传文件" width="500px">
       <el-upload ref="uploadRef" :action="uploadUrl" :on-success="handleUploadSuccess" :on-error="handleUploadError"
-        :before-upload="beforeUpload" drag accept=".md,.docx,.doc,.txt">
+        :before-upload="beforeUpload" drag accept=".md,.docx,.doc,.txt" :headers="uploadHeaders">
         <el-icon class="el-icon--upload"><upload-filled /></el-icon>
         <div class="el-upload__text">
           将文件拖到此处，或<em>点击上传</em>
@@ -235,14 +315,15 @@
 
 <script>
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElLoading } from 'element-plus'
 import { Upload, Document, Refresh, View, Download, UploadFilled, Picture } from '@element-plus/icons-vue'
+import MagicIcon from '../components/MagicIcon.vue'
 import { getTemplates, generateDocument as generateDocumentApi, uploadFile as uploadFileApi } from '../api/document'
 
 export default {
   name: 'DocumentGenerator',
   components: {
-    Upload, Document, Refresh, View, Download, UploadFilled, Picture
+    Upload, Document, Refresh, View, Download, UploadFilled, Picture, MagicIcon
   },
   setup() {
     const formRef = ref()
@@ -252,17 +333,34 @@ export default {
     const uploadDialogVisible = ref(false)
     const recentDocuments = ref([])
     const uploadUrl = '/api/upload'
+    const uploadHeaders = { 'X-Requested-With': 'XMLHttpRequest' }
+    const activeCollapse = ref(['body']) // 默认展开主体部分
 
     const form = reactive({
       templateType: '',
-      title: '',
-      sender: '',
-      recipient: '',
-      documentNumber: '',
-      date: '',
-      urgencyLevel: '一般',
+      // 版头字段
+      copyNumber: '',
       securityLevel: '一般',
+      securityPeriod: '',
+      urgencyLevel: '一般',
+      sender: '',
+      senderSymbol: '',
+      senderCode: '',
+      year: new Date().getFullYear().toString(),
+      serialNumber: '',
+      // 主体字段
+      title: '',
+      recipient: '',
       content: '',
+      // 发文机关或签发人署名
+      senderSignature: '',
+      date: '',
+      notes: '',
+      // 版记
+      copyTo: '',
+      // 印发机关和印发日期
+      printingOrg: '',
+      printingDate: '',
       formatType: 'markdown'
     })
 
@@ -412,33 +510,54 @@ export default {
             title: form.title,
             sender: form.sender,
             recipient: form.recipient || '',
-            document_number: form.documentNumber || '',
-            urgency_level: form.urgencyLevel || '一般',
-            security_level: form.securityLevel || '一般',
+            senderCode: form.senderCode || '',
+            year: form.year || '',
+            serialNumber: form.serialNumber || '',
+            urgencyLevel: form.urgencyLevel || '一般',
+            securityLevel: form.securityLevel || '一般',
             date: formattedDate,
             format_type: form.formatType || 'markdown'
           }
         }
 
         console.log('准备发送请求:', JSON.stringify(requestData))
-        const response = await generateDocumentApi(requestData)
-        console.log('收到响应:', response)
-
-        if (response.data.success) {
-          ElMessage.success('公文生成成功！')
-
-          // 添加到最近生成列表
-          recentDocuments.value.unshift({
-            id: Date.now(),
-            title: form.title,
-            createTime: new Date().toLocaleString(),
-            downloadUrl: response.data.download_url
+        
+        try {
+          // 使用fetch API直接发送请求，以便更好地处理错误
+          const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
           })
-
-          // 自动下载
-          downloadDocument(response.data.download_url)
-        } else {
-          ElMessage.error(response.data.message || '生成失败')
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+          }
+          
+          const result = await response.json()
+          console.log('收到响应:', result)
+          
+          if (result.success) {
+            ElMessage.success('公文生成成功！')
+  
+            // 添加到最近生成列表
+            recentDocuments.value.unshift({
+              id: Date.now(),
+              title: form.title,
+              createTime: new Date().toLocaleString(),
+              downloadUrl: result.download_url
+            })
+  
+            // 自动下载
+            downloadDocument(result.download_url)
+          } else {
+            ElMessage.error(result.message || '生成失败')
+          }
+        } catch (apiError) {
+          console.error('API请求失败:', apiError)
+          ElMessage.error(`API请求失败: ${apiError.message}`)
         }
       } catch (error) {
         console.error('生成文档失败:', error)
@@ -465,8 +584,13 @@ export default {
     }
 
     const beforeUpload = (file) => {
+      console.log('准备上传文件:', file.name, file.type, file.size)
       const validTypes = ['text/markdown', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword', 'text/plain']
-      const isValidType = validTypes.includes(file.type) || file.name.endsWith('.md')
+      const validExtensions = ['.md', '.docx', '.doc', '.txt']
+      
+      // 检查文件类型和扩展名
+      const isValidType = validTypes.includes(file.type) || 
+                          validExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
       const isLt10M = file.size / 1024 / 1024 < 10
 
       if (!isValidType) {
@@ -481,17 +605,19 @@ export default {
     }
 
     const handleUploadSuccess = (response) => {
-      if (response.success) {
+      console.log('文件上传成功，响应:', response)
+      if (response && response.success) {
         form.content = response.content
         uploadDialogVisible.value = false
         ElMessage.success('文件上传成功！')
       } else {
-        ElMessage.error('文件解析失败')
+        ElMessage.error(response?.message || '文件解析失败')
       }
     }
 
-    const handleUploadError = () => {
-      ElMessage.error('文件上传失败')
+    const handleUploadError = (error) => {
+      console.error('文件上传失败:', error)
+      ElMessage.error('文件上传失败，请稍后再试')
     }
 
     const downloadDocument = (downloadUrl) => {
@@ -558,7 +684,8 @@ export default {
       }
 
       // 逐个检查图片是否存在
-      for (let i = 1; i <= 30; i++) {
+      let hasImages = false
+      for (let i = 1; i <= 10; i++) {
         const imageUrl = `/templates/${chineseName}/${i}.png`
         const exists = await checkImageExists(imageUrl)
 
@@ -567,19 +694,115 @@ export default {
             url: imageUrl,
             index: i
           })
+          hasImages = true
         } else {
           // 如果图片不存在，停止检查后续图片
-          console.log(`图片 ${i} 不存在，停止加载更多图片`)
           break
         }
       }
 
-      console.log('实际加载的模板图片数量:', templateImages.value.length)
+      // 如果没有找到任何图片，显示默认图片
+      if (!hasImages) {
+        console.log('未找到模板图片，使用默认模板图片')
+        templateImages.value.push({
+          url: '/templates/default.png',
+          index: 1,
+          isDefault: true
+        })
+      }
     }
 
     // 获取模板图片URL列表
     const getTemplateImages = () => {
       return templateImages.value
+    }
+
+    // 从内容生成标题
+    const generateTitleFromContent = async () => {
+      if (!form.content) {
+        ElMessage.warning('请先输入正文内容')
+        return
+      }
+
+      try {
+        const loading = ElLoading.service({
+          lock: true,
+          text: '正在生成标题...',
+          background: 'rgba(0, 0, 0, 0.7)'
+        })
+
+        const response = await fetch('/api/generate-title', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            content: form.content
+          })
+        })
+
+        const result = await response.json()
+        loading.close()
+
+        if (result.success) {
+          form.title = result.title
+          ElMessage.success('标题生成成功')
+        } else {
+          ElMessage.error(result.message || '标题生成失败')
+        }
+      } catch (error) {
+        ElMessage.error('标题生成失败，请稍后再试')
+        console.error('生成标题失败:', error)
+      }
+    }
+
+    // 从主题生成内容
+    const generateContentFromTopic = async () => {
+      // 弹出对话框，让用户输入主题
+      ElMessageBox.prompt('请输入公文主题', '生成内容', {
+        confirmButtonText: '生成',
+        cancelButtonText: '取消',
+        inputPlaceholder: '请输入公文主题或关键内容'
+      }).then(async ({ value }) => {
+        if (!value) {
+          ElMessage.warning('请输入主题')
+          return
+        }
+
+        try {
+          const loading = ElLoading.service({
+            lock: true,
+            text: '正在生成内容...',
+            background: 'rgba(0, 0, 0, 0.7)'
+          })
+
+          const response = await fetch('/api/generate-content', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              topic: value,
+              document_type: getTemplateName(form.templateType)
+            })
+          })
+
+          const result = await response.json()
+          loading.close()
+
+          if (result.success) {
+            form.content = result.content
+            ElMessage.success('内容生成成功')
+          } else {
+            ElMessage.error(result.message || '内容生成失败')
+          }
+        } catch (error) {
+          ElMessage.error('内容生成失败，请稍后再试')
+          console.error('生成内容失败:', error)
+        }
+      }).catch(() => {
+        // 用户取消操作
+      })
     }
 
     onMounted(() => {
@@ -596,6 +819,7 @@ export default {
       uploadDialogVisible,
       recentDocuments,
       uploadUrl,
+      activeCollapse,
       onTemplateChange,
       generateDocument,
       resetForm,
@@ -607,7 +831,9 @@ export default {
       downloadDocument,
       getTemplateName,
       getTemplateDescription,
-      templateImages
+      templateImages,
+      generateTitleFromContent,
+      generateContentFromTopic
     }
   }
 }
@@ -734,6 +960,85 @@ export default {
   color: #7f8c8d;
   font-size: 13px;
   margin-bottom: 10px;
+}
+
+.field-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+}
+
+.field-actions .el-button {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.template-actions {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.help-content h4 {
+  color: #2c3e50;
+  margin: 15px 0 10px 0;
+  font-size: 14px;
+}
+
+.help-content ol,
+.help-content ul {
+  margin: 0 0 15px 20px;
+  font-size: 13px;
+  color: #7f8c8d;
+}
+
+.help-content li {
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+.markdown-example {
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #495057;
+  margin-top: 10px;
+}
+
+.recent-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.recent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.recent-item:last-child {
+  border-bottom: none;
+}
+
+.recent-info {
+  flex: 1;
+}
+
+.recent-title {
+  font-size: 14px;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+
+.recent-time {
+  font-size: 12px;
+  color: #909399;
+}
+
+:deep(.el-upload-dragger) {
+  width: 100%;
 }
 
 .template-actions {

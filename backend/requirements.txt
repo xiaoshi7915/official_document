@@ -1,5 +1,8 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
+flask==2.3.3
+flask-cors==4.0.0
+requests==2.31.0
 python-docx==0.8.11
 python-multipart==0.0.6
 pydantic==2.5.0
@@ -8,3 +11,6 @@ markdown==3.5.1
 beautifulsoup4==4.12.2
 docx2txt==0.8
 python-dateutil==2.8.2
+mysql-connector-python==8.2.0
+werkzeug==2.3.7
+mammoth==1.6.0

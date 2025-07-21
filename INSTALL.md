@@ -17,7 +17,7 @@
 
 1. 双击运行 `start.bat`
 2. 脚本会自动检查环境并安装依赖
-3. 启动完成后访问 http://localhost:3000
+3. 启动完成后访问 http://localhost:5173
 
 ### 方法二：手动安装
 
@@ -43,7 +43,7 @@ npm install
 ```bash
 cd backend
 venv\Scripts\activate
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn main:app --reload --host 0.0.0.0 --port 5000
 ```
 
 启动前端：
@@ -56,14 +56,14 @@ npm run dev
 
 ### 后端配置
 - 配置文件：`backend/config.py`
-- 端口：8000
+- 端口：5000
 - 输出目录：`backend/output`
 - 临时目录：`backend/temp`
 
 ### 前端配置
 - 配置文件：`frontend/vite.config.js`
-- 端口：3000
-- API代理：自动代理到后端8000端口
+- 端口：5173
+- API代理：自动代理到后端5000端口
 
 ## 模板配置
 
@@ -73,9 +73,9 @@ npm run dev
 
 ## 访问地址
 
-- 前端界面：http://localhost:3000
-- 后端API：http://localhost:8000
-- API文档：http://localhost:8000/docs
+- 前端界面：http://localhost:5173
+- 后端API：http://localhost:5000
+- API文档：http://localhost:5000/docs
 
 ## 常见问题
 
@@ -96,7 +96,7 @@ A: 确保模板文件格式正确，放置在templates目录下
 ### 后端部署
 ```bash
 pip install gunicorn
-gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:5000
 ```
 
 ### 前端部署
@@ -117,7 +117,7 @@ server {
     }
     
     location /api {
-        proxy_pass http://localhost:8000;
+        proxy_pass http://localhost:5000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
