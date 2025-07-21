@@ -1,7 +1,7 @@
 {
   "name": "official-document-generator",
   "version": "1.0.0",
-  "description": "党政机关公文生成系统前端",
+  "description": "党政机关公文生成智能体前端",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

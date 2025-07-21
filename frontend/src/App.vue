@@ -5,7 +5,7 @@
         <div class="header-content">
           <h1 class="app-title">
             <el-icon><Document /></el-icon>
-            党政机关公文生成系统
+            党政机关公文生成智能体
           </h1>
           <div class="header-info">
             <span>基于GB/T9704-2012标准</span>
@@ -19,7 +19,7 @@
       
       <el-footer class="app-footer">
         <div class="footer-content">
-          <p>&copy; 2025 党政机关公文生成系统 - 符合GB/T9704-2012标准</p>
+          <p>&copy; 2025 党政机关公文生成智能体 - 符合GB/T9704-2012标准</p>
         </div>
       </el-footer>
     </el-container>

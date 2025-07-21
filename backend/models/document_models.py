@@ -40,19 +40,19 @@ class TemplateInfo(BaseModel):
 
 # 15种公文类型定义
 DOCUMENT_TYPES = {
-    "gonggao": {"name": "公告", "description": "向国内外宣布重要事项或者法定事项"},
-    "gongtong": {"name": "公通", "description": "公开通报有关情况"},
-    "jueding": {"name": "决定", "description": "对重要事项作出决策和部署"},
-    "minglin": {"name": "命令", "description": "依照有关法律公布行政法规和规章"},
-    "gonbao": {"name": "公报", "description": "公布重要决定或重大事项"},
-    "yijian": {"name": "意见", "description": "对重要问题提出见解和处理办法"},
-    "tongzhi": {"name": "通知", "description": "发布、传达要求下级机关执行和有关单位周知或者执行的事项"},
-    "tongbao": {"name": "通报", "description": "表彰先进、批评错误、传达重要精神和告知重要情况"},
     "baogao": {"name": "报告", "description": "向上级机关汇报工作、反映情况、回复询问"},
-    "qingshi": {"name": "请示", "description": "向上级机关请求指示或批准"},
+    "gongbao": {"name": "公报", "description": "公开发布重要决议、决定或重大事件"},
+    "gonggao": {"name": "公告", "description": "向国内外宣布重要事项或者法定事项"},
+    "hansong": {"name": "函送", "description": "向有关单位送交公文或资料"},
+    "jiyao": {"name": "纪要", "description": "记载会议主要情况和议定事项"},
+    "jueding": {"name": "决定", "description": "对重要事项或重大行动作出安排"},
+    "jueyi": {"name": "决议", "description": "会议讨论通过的重要事项的决策"},
+    "minglin": {"name": "命令", "description": "依照有关法律公布行政法规和规章、宣布施行重大强制性措施"},
     "pifu": {"name": "批复", "description": "答复下级机关请示事项"},
-    "yihan": {"name": "议函", "description": "不相隶属机关之间商洽工作、询问和答复问题"},
-    "jiyao": {"name": "纪要", "description": "记录会议主要情况和议定事项"},
-    "hansong": {"name": "函送", "description": "向有关机关和单位告知事项"},
-    "baosong": {"name": "报送", "description": "向上级机关报送材料"}
+    "qingshi": {"name": "请示", "description": "向上级机关请求指示或批准"},
+    "tongbao": {"name": "通报", "description": "表彰先进、批评错误、传达重要精神或情况"},
+    "tonggao": {"name": "通告", "description": "公开宣布重要事项或者法定事项"},
+    "tongzhi": {"name": "通知", "description": "发布、传达要求下级机关执行和有关单位周知或者执行的事项"},
+    "yian": {"name": "议案", "description": "正式提出审议事项的文书"},
+    "yijian": {"name": "意见", "description": "对重要问题提出见解和处理办法"}
 }

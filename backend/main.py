@@ -13,7 +13,7 @@ from services.template_manager import TemplateManager
 from models.document_models import DocumentRequest, DocumentResponse
 
 app = FastAPI(
-    title="党政机关公文生成服务",
+    title="党政机关公文生成智能体",
     description="基于GB/T9704-2012标准的公文自动生成API",
     version="1.0.0"
 )

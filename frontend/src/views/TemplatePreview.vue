@@ -10,27 +10,7 @@
         </el-button>
         <h2>{{ templateInfo.name }} - 模板预览</h2>
         <div class="header-actions">
-          <el-button-group>
-            <el-button type="primary" @click="switchPreviewMode('image')" :class="{ active: previewMode === 'image' }">
-              <el-icon>
-                <Picture />
-              </el-icon>
-              图片预览
-            </el-button>
-            <el-button type="primary" @click="switchPreviewMode('html')" :class="{ active: previewMode === 'html' }">
-              <el-icon>
-                <Document />
-              </el-icon>
-              HTML预览
-            </el-button>
-            <el-button type="primary" @click="switchPreviewMode('text')" :class="{ active: previewMode === 'text' }">
-              <el-icon>
-                <Reading />
-              </el-icon>
-              文本预览
-            </el-button>
-          </el-button-group>
-          <el-button type="success" @click="useTemplate" style="margin-left: 10px;">
+          <el-button type="success" @click="useTemplate">
             <el-icon>
               <Edit />
             </el-icon>
@@ -46,52 +26,31 @@
               <span>模板预览</span>
             </template>
             <div class="document-preview">
-              <!-- 图片预览模式 -->
-              <div v-if="previewMode === 'image'" class="image-preview">
-                <div v-if="imageContent" class="image-container">
-                  <img :src="'data:image/png;base64,' + imageContent" alt="模板预览" class="template-image" />
+              <div class="template-images">
+                <div v-if="templateImages.length > 0" class="image-gallery">
+                  <div v-for="(image, index) in templateImages" :key="index" class="image-container">
+                    <el-image :src="image.url" :alt="'模板预览 ' + (index + 1)" class="template-image" fit="contain"
+                      :preview-src-list="templateImages.map(img => img.url)" :initial-index="index" loading="lazy">
+                      <template #error>
+                        <div class="image-error">
+                          <el-icon>
+                            <Picture />
+                          </el-icon>
+                          <div>图片 {{ index + 1 }} 加载失败</div>
+                        </div>
+                      </template>
+                    </el-image>
+                    <div class="image-caption">第 {{ index + 1 }} 页</div>
+                  </div>
                 </div>
                 <div v-else class="no-content">
-                  <el-empty description="图片预览内容不可用">
+                  <el-empty description="模板预览内容不可用">
                     <template #description>
-                      <p>图片预览内容不可用</p>
-                      <p class="error-message" v-if="imageError">{{ imageError }}</p>
+                      <p>模板预览内容不可用</p>
+                      <p class="error-message">请确保模板图片已上传到正确的目录</p>
+                      <p class="error-path">路径: /templates/{{ getChineseName() }}/</p>
                     </template>
                   </el-empty>
-                </div>
-              </div>
-
-              <!-- HTML预览模式 -->
-              <div v-else-if="previewMode === 'html'" class="html-preview">
-                <div v-if="htmlContent" v-html="htmlContent"></div>
-                <div v-else class="no-content">
-                  <el-empty description="HTML预览内容不可用"></el-empty>
-                </div>
-              </div>
-
-              <!-- 文本预览模式 -->
-              <div v-else class="text-preview">
-                <div class="doc-header">
-                  <div class="doc-sender">{{ templateInfo.name === '公告' ? '××市人民政府' : '××机关' }}</div>
-                  <div class="doc-line">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
-                  <div class="doc-title">{{ getPreviewTitle() }}</div>
-                  <div class="doc-number" v-if="showDocNumber">{{ getPreviewDocNumber() }}</div>
-                </div>
-
-                <div class="doc-content">
-                  <div class="doc-body">
-                    <p v-for="(paragraph, index) in getPreviewContent()" :key="index" class="doc-paragraph">
-                      {{ paragraph }}
-                    </p>
-                  </div>
-                </div>
-
-                <div class="doc-footer">
-                  <div class="doc-signature">
-                    <div class="signature-org">{{ templateInfo.name === '公告' ? '××市人民政府' : '××机关' }}
-                    </div>
-                    <div class="signature-date">{{ getCurrentDate() }}</div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -166,8 +125,7 @@ export default {
     const route = useRoute()
     const templateId = route.params.templateId
 
-    // 预览模式：text（文本预览）或 html（HTML预览）
-    const previewMode = ref('text')
+    // 不再需要预览模式，只使用图片预览
 
     const templateInfo = ref({
       id: '',
@@ -177,23 +135,59 @@ export default {
     })
 
     const templateData = {
+      baogao: {
+        name: '报告',
+        description: '向上级机关汇报工作、反映情况、回复询问',
+        features: ['汇报性质', '客观真实', '条理清晰', '数据准确'],
+        notes: ['情况要客观', '数据要准确', '问题要明确', '建议要可行']
+      },
+      gongbao: {
+        name: '公报',
+        description: '公开发布重要决议、决定或重大事件',
+        features: ['权威性强', '内容重大', '公开性强', '格式规范'],
+        notes: ['内容要准确', '表述要严谨', '格式要规范', '发布要及时']
+      },
       gonggao: {
         name: '公告',
         description: '向国内外宣布重要事项或者法定事项',
         features: ['面向社会公众', '具有权威性', '内容重要', '格式庄重'],
         notes: ['标题要简洁明确', '内容要准确无误', '发布机关要明确', '日期要准确']
       },
-      tongzhi: {
-        name: '通知',
-        description: '发布、传达要求下级机关执行和有关单位周知或者执行的事项',
-        features: ['具有指导性', '要求明确', '时效性强', '适用面广'],
-        notes: ['执行要求要明确', '时间节点要清楚', '责任主体要明确', '联系方式要准确']
+      hansong: {
+        name: '函送',
+        description: '向有关单位送交公文或资料',
+        features: ['送交性质', '简明扼要', '明确对象', '附件明确'],
+        notes: ['送交内容要明确', '接收单位要准确', '附件要完整', '时间要及时']
       },
-      baogao: {
-        name: '报告',
-        description: '向上级机关汇报工作、反映情况、回复询问',
-        features: ['汇报性质', '客观真实', '条理清晰', '数据准确'],
-        notes: ['情况要客观', '数据要准确', '问题要明确', '建议要可行']
+      jiyao: {
+        name: '纪要',
+        description: '记载会议主要情况和议定事项',
+        features: ['记录性质', '内容详实', '决议明确', '任务清晰'],
+        notes: ['会议内容要完整', '议定事项要明确', '责任分工要清晰', '时间节点要明确']
+      },
+      jueding: {
+        name: '决定',
+        description: '对重要事项或重大行动作出安排',
+        features: ['决策性质', '权威性强', '内容重大', '执行明确'],
+        notes: ['决定事项要明确', '依据要充分', '执行要求要明确', '时间节点要清楚']
+      },
+      jueyi: {
+        name: '决议',
+        description: '会议讨论通过的重要事项的决策',
+        features: ['集体决策', '权威性强', '内容重大', '表决通过'],
+        notes: ['决议内容要明确', '表决程序要规范', '执行要求要明确', '时间节点要清楚']
+      },
+      minglin: {
+        name: '命令',
+        description: '依照有关法律公布行政法规和规章、宣布施行重大强制性措施',
+        features: ['强制性强', '权威性高', '执行明确', '时效性强'],
+        notes: ['命令内容要明确', '依据要充分', '执行要求要严格', '时间节点要明确']
+      },
+      pifu: {
+        name: '批复',
+        description: '答复下级机关请示事项',
+        features: ['答复性质', '针对性强', '态度明确', '指导具体'],
+        notes: ['针对请示内容', '态度要明确', '指导要具体', '时效要及时']
       },
       qingshi: {
         name: '请示',
@@ -201,11 +195,35 @@ export default {
         features: ['请求性质', '事前行文', '一事一请', '理由充分'],
         notes: ['请示事项要明确', '理由要充分', '方案要可行', '急需上级批准']
       },
-      pifu: {
-        name: '批复',
-        description: '答复下级机关请示事项',
-        features: ['答复性质', '针对性强', '态度明确', '指导具体'],
-        notes: ['针对请示内容', '态度要明确', '指导要具体', '时效要及时']
+      tongbao: {
+        name: '通报',
+        description: '表彰先进、批评错误、传达重要精神或情况',
+        features: ['传达性质', '表彰或批评', '典型案例', '教育意义'],
+        notes: ['内容要真实', '典型要突出', '表述要得当', '教育意义要明确']
+      },
+      tonggao: {
+        name: '通告',
+        description: '公开宣布重要事项或者法定事项',
+        features: ['公开性强', '内容重要', '面向特定区域', '强制性较强'],
+        notes: ['内容要明确', '范围要清晰', '时间要准确', '要求要具体']
+      },
+      tongzhi: {
+        name: '通知',
+        description: '发布、传达要求下级机关执行和有关单位周知或者执行的事项',
+        features: ['具有指导性', '要求明确', '时效性强', '适用面广'],
+        notes: ['执行要求要明确', '时间节点要清楚', '责任主体要明确', '联系方式要准确']
+      },
+      yian: {
+        name: '议案',
+        description: '正式提出审议事项的文书',
+        features: ['提案性质', '内容重要', '程序规范', '审议明确'],
+        notes: ['提案内容要明确', '理由要充分', '方案要可行', '程序要规范']
+      },
+      yijian: {
+        name: '意见',
+        description: '对重要问题提出见解和处理办法',
+        features: ['指导性强', '内容全面', '建议具体', '可操作性强'],
+        notes: ['问题分析要准确', '意见要有针对性', '建议要可行', '表述要准确']
       }
     }
 
@@ -264,52 +282,10 @@ export default {
       return `${prefix}〔2025〕1号`
     }
 
-    // 实际模板内容
-    const templateContent = ref({
-      content: '',
-      paragraphs: []
-    })
-
-    // 加载实际模板内容
-    const loadTemplateContent = async () => {
-      try {
-        const loading = ElLoading.service({
-          lock: true,
-          text: '加载模板内容...',
-          background: 'rgba(255, 255, 255, 0.7)'
-        })
-
-        console.log('从API加载模板内容:', templateId)
-        const response = await getTemplatePreview(templateId)
-        loading.close()
-
-        if (response.data.success) {
-          console.log('模板内容加载成功:', response.data)
-          templateContent.value = {
-            content: response.data.content,
-            paragraphs: response.data.paragraphs || []
-          }
-          return true
-        } else {
-          console.error('模板内容加载失败:', response.data.message)
-          ElMessage.warning('模板内容加载失败，显示示例内容')
-          return false
-        }
-      } catch (error) {
-        console.error('加载模板内容出错:', error)
-        ElMessage.warning('模板内容加载失败，显示示例内容')
-        return false
-      }
-    }
+    // 不再需要加载模板内容的函数，只使用图片预览
 
     const getPreviewContent = () => {
-      // 如果已经加载了实际模板内容，则使用实际内容
-      if (templateContent.value.content) {
-        // 将模板内容按段落分割
-        return templateContent.value.content.split('\n').filter(line => line.trim());
-      }
-
-      // 否则使用示例内容
+      // 使用示例内容
       const contents = {
         gonggao: [
           '根据××法律法规，现就××事项公告如下：',
@@ -378,34 +354,7 @@ export default {
       }
     }
 
-    // 切换预览模式
-    const switchPreviewMode = (mode) => {
-      console.log('切换预览模式:', mode)
-      previewMode.value = mode
-    }
-
-    // HTML内容
-    const htmlContent = ref('')
-
-    // 加载HTML内容
-    const loadHtmlContent = async () => {
-      try {
-        console.log('加载HTML内容')
-        const response = await getTemplatePreview(templateId)
-
-        if (response.data.success && response.data.html_content) {
-          console.log('HTML内容加载成功')
-          htmlContent.value = response.data.html_content
-          return true
-        } else {
-          console.error('HTML内容加载失败:', response.data.html_error || '未知错误')
-          return false
-        }
-      } catch (error) {
-        console.error('加载HTML内容出错:', error)
-        return false
-      }
-    }
+    // 不再需要切换预览模式和加载HTML内容的函数
 
     onMounted(async () => {
       console.log('模板预览组件加载，模板ID:', templateId)
@@ -432,10 +381,8 @@ export default {
         }
       }
 
-      // 加载实际的模板文件内容、HTML内容和图片内容
-      await loadTemplateContent()
-      await loadHtmlContent()
-      await loadImageContent()
+      // 加载模板图片
+      await loadTemplateImages()
     })
 
     // 修改loadTemplateContent函数，同时加载HTML内容
@@ -445,45 +392,96 @@ export default {
       return result
     }
 
-    // 图片内容
-    const imageContent = ref('')
-    const imageError = ref('')
-    
-    // 加载图片内容
-    const loadImageContent = async () => {
+    // 模板图片列表
+    const templateImages = ref([])
+
+    // 获取中文名称的映射
+    const chineseNameMap = {
+      'baogao': '报告',
+      'gongbao': '公报',
+      'gonggao': '公告',
+      'hansong': '函送',
+      'jiyao': '纪要',
+      'jueding': '决定',
+      'jueyi': '决议',
+      'minglin': '命令',
+      'pifu': '批复',
+      'qingshi': '请示',
+      'tongbao': '通报',
+      'tonggao': '通告',
+      'tongzhi': '通知',
+      'yian': '议案',
+      'yijian': '意见'
+    }
+
+    // 获取中文名称
+    const getChineseName = () => {
+      return chineseNameMap[templateId] || templateInfo.value.name || '未知模板'
+    }
+
+    // 加载模板图片
+    const loadTemplateImages = async () => {
       try {
-        console.log('加载图片内容')
-        const response = await getTemplatePreview(templateId)
-        
-        if (response.data.success && response.data.image_content) {
-          console.log('图片内容加载成功')
-          imageContent.value = response.data.image_content
-          return true
-        } else {
-          console.error('图片内容加载失败:', response.data.image_error || '未知错误')
-          imageError.value = response.data.image_error || '图片内容加载失败'
-          return false
+        console.log('加载模板图片')
+
+        // 获取中文文件夹名称
+        const chineseName = getChineseName()
+        console.log('模板中文名称:', chineseName)
+
+        // 构建图片URL列表
+        const imageList = []
+
+        // 尝试加载图片并检查是否存在
+        const checkImageExists = async (url) => {
+          return new Promise((resolve) => {
+            const img = new Image()
+            img.onload = () => resolve(true)
+            img.onerror = () => resolve(false)
+            img.src = url
+          })
         }
+
+        // 异步检查图片是否存在并添加到列表
+        const loadImages = async () => {
+          for (let i = 1; i <= 10; i++) {
+            const imageUrl = `/templates/${chineseName}/${i}.png`
+            const exists = await checkImageExists(imageUrl)
+            if (exists) {
+              imageList.push({
+                url: imageUrl,
+                index: i
+              })
+            } else {
+              console.log(`图片 ${i} 不存在，停止加载更多图片`)
+              break
+            }
+          }
+
+          // 更新模板图片列表
+          templateImages.value = imageList
+          console.log('实际加载的模板图片数量:', imageList.length)
+        }
+
+        // 执行图片加载
+        await loadImages()
+
+        return true
       } catch (error) {
-        console.error('加载图片内容出错:', error)
-        imageError.value = error.message || '加载图片内容出错'
+        console.error('加载模板图片出错:', error)
         return false
       }
     }
-    
+
     // 注意：这里不需要重复的onMounted钩子，已经在上面的onMounted中加载了内容
-    
+
     return {
       templateInfo,
       requiredFields,
       showDocNumber,
-      previewMode,
-      htmlContent,
-      imageContent,
-      imageError,
+      templateImages,
       goBack,
       useTemplate,
-      switchPreviewMode,
+      getChineseName,
       getPreviewTitle,
       getPreviewDocNumber,
       getPreviewContent,
@@ -527,7 +525,7 @@ export default {
 
 .document-preview {
   background: white;
-  padding: 40px;
+  padding: 20px;
   border: 1px solid #e0e0e0;
   font-family: '仿宋', serif;
   line-height: 1.8;
@@ -645,14 +643,58 @@ export default {
   align-items: flex-start;
 }
 
+.image-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+}
+
 .image-container {
   max-width: 100%;
   text-align: center;
+  margin-bottom: 10px;
+  position: relative;
 }
 
 .template-image {
   max-width: 100%;
+  max-height: 800px;
+  /* 增加最大高度 */
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid #eaeaea;
+}
+
+.image-caption {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #606266;
+  text-align: center;
+}
+
+.image-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  background-color: #f5f7fa;
+  color: #909399;
+  border: 1px dashed #d9d9d9;
+  border-radius: 4px;
+}
+
+.image-error .el-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.error-path {
+  font-family: monospace;
+  background-color: #f5f5f5;
+  padding: 3px 6px;
+  border-radius: 3px;
+  margin-top: 5px;
 }
 
 .no-content {
