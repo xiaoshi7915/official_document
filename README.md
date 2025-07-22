@@ -17,6 +17,7 @@
 - **自动排版**：根据标准自动进行公文排版
 - **一键生成**：快速生成符合标准的公文Word文档
 - **多域名访问**：支持本地和服务器域名访问，CORS配置完善
+- **RAG知识库外挂**：支持上传文档作为参考，智能检索增强公文生成质量
 
 ## 公文格式要求
 
@@ -97,6 +98,37 @@ Linux/Mac:
 ```bash
 ./start_services.sh
 ```
+
+3. **安装RAG知识库功能（可选）**
+
+如果需要使用知识库外挂功能：
+
+**超简化安装（推荐，使用国内镜像源）**：
+```bash
+./install_rag_ultra_simple.sh
+```
+
+**加速器安装（使用国内镜像源）**：
+```bash
+./install_rag_accelerated.sh
+```
+
+**修复版安装**：
+```bash
+./install_rag_fix.sh
+```
+
+**简化安装**：
+```bash
+./install_rag_simple.sh
+```
+
+**完整安装**：
+```bash
+./install_rag.sh
+```
+
+**如果遇到安装问题，请参考**：[RAG_INSTALL_GUIDE.md](RAG_INSTALL_GUIDE.md)
 
 停止服务:
 ```bash
@@ -182,6 +214,54 @@ npm run dev
 
 所有默认值都会在输入框的占位符中显示，用户可以根据需要修改。
 
+### RAG知识库功能
+
+系统支持RAG（Retrieval-Augmented Generation）知识库外挂功能，可以上传文档作为参考，增强公文生成质量。
+
+#### 功能特点
+- **多格式支持**：PDF、Word、Excel、TXT、Markdown、CSV
+- **智能解析**：自动提取文档内容和元数据
+- **向量化存储**：使用ChromaDB向量数据库
+- **语义检索**：基于相似度的智能检索
+- **异步处理**：不阻塞用户操作
+
+#### 使用方法
+1. 在公文生成页面，点击"上传文件作为参考"按钮
+2. 选择要上传的文档文件（支持多种格式）
+3. 系统自动解析、向量化并存储到知识库
+4. 文件处理完成后即可作为参考使用
+
+#### 技术架构
+- **MinIO S3**：文件存储服务
+- **MinerU解析**：智能文档解析
+- **ChromaDB**：向量数据库
+- **Sentence Transformers**：文本向量化
+- **Flask API**：后端服务接口
+
+#### 快速开始
+🚀 **一键安装**：参考 [RAG快速开始指南](RAG_QUICK_START.md)
+
+#### 安装说明
+```bash
+# 超简化安装（推荐）
+./install_rag_ultra_simple.sh
+
+# 加速器安装
+./install_rag_accelerated.sh
+
+# 启动RAG服务
+./start_rag_simple.sh
+
+# 停止RAG服务
+./stop_rag_services.sh
+```
+
+#### 详细文档
+- [快速开始指南](RAG_QUICK_START.md)
+- [完整安装指南](RAG_INSTALL_GUIDE.md)
+- [功能详细说明](RAG_KNOWLEDGE_BASE.md)
+- [实现总结](RAG_IMPLEMENTATION_SUMMARY.md)
+
 ## 问题修复记录
 
 ### 2025-01-27 功能增强
@@ -202,6 +282,15 @@ npm run dev
    - 优化输入框占位符，明确标识必填和可选字段
    - 提供详细的默认值说明和使用指南
    - 改进表单验证和错误提示
+
+4. **RAG知识库外挂功能**
+   - 实现基于RAG的知识库外挂功能
+   - 支持上传PDF、Word、Excel、TXT、Markdown、CSV等格式文档
+   - 使用MinerU智能解析和ChromaDB向量数据库
+   - 集成MinIO S3对象存储服务
+   - 提供语义检索和知识增强功能
+   - 在公文生成页面添加"上传文件作为参考"按钮
+   - 创建完整的安装和部署脚本
 
 ### 2025-07-22 修复内容
 

@@ -17,6 +17,13 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 import logging
 from logging.handlers import RotatingFileHandler
 
+# 导入知识库相关模块
+try:
+    from routes.knowledge_base import knowledge_base_bp
+except ImportError:
+    # 如果导入失败，尝试使用相对导入
+    from backend.routes.knowledge_base import knowledge_base_bp
+
 # 配置日志 - 只记录关键信息
 if not os.path.exists('logs'):
     os.makedirs('logs')
@@ -49,6 +56,9 @@ CORS(app, origins=[
     'http://121.36.205.70:8081',
     'http://chenxiaoshivivid.com.cn:8081'
 ])
+
+# 注册知识库蓝图
+app.register_blueprint(knowledge_base_bp, url_prefix='/api/knowledge')
 
 # 简化请求日志中间件
 @app.before_request

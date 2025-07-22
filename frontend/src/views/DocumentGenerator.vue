@@ -174,6 +174,11 @@
                           <Upload />
                         </el-icon> 上传文件作为正文
                       </el-button>
+                      <el-button link @click="uploadReferenceFile" type="warning">
+                        <el-icon>
+                          <FolderAdd />
+                        </el-icon> 上传文件作为参考
+                      </el-button>
                     </div>
                   </el-form-item>
                 </el-collapse-item>
@@ -326,7 +331,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox, ElLoading } from 'element-plus'
-import { Upload, Document, Refresh, View, Download, UploadFilled, Picture } from '@element-plus/icons-vue'
+import { Upload, Document, Refresh, View, Download, UploadFilled, Picture, FolderAdd } from '@element-plus/icons-vue'
 import MagicIcon from '../components/MagicIcon.vue'
 import { getTemplates, generateDocument as generateDocumentApi, uploadFile as uploadFileApi } from '../api/document'
 
@@ -884,6 +889,58 @@ export default {
       router.push('/')
     }
 
+    // 上传文件作为参考
+    const uploadReferenceFile = () => {
+      // 创建文件输入元素
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = '.pdf,.docx,.doc,.txt,.md,.xlsx,.xls,.csv'
+      input.multiple = false
+      
+      input.onchange = async (event) => {
+        const file = event.target.files[0]
+        if (!file) return
+        
+        // 检查文件大小（50MB限制）
+        if (file.size > 50 * 1024 * 1024) {
+          ElMessage.error('文件大小不能超过50MB')
+          return
+        }
+        
+        try {
+          const loading = ElLoading.service({
+            lock: true,
+            text: '正在上传文件到知识库...',
+            background: 'rgba(0, 0, 0, 0.7)'
+          })
+          
+          const formData = new FormData()
+          formData.append('file', file)
+          
+          const response = await fetch('/api/knowledge/upload', {
+            method: 'POST',
+            body: formData
+          })
+          
+          const result = await response.json()
+          loading.close()
+          
+          if (result.success) {
+            ElMessage.success('文件上传成功，已添加到知识库作为参考')
+            // 可以在这里显示上传的文件信息
+            console.log('上传的文件信息:', result)
+          } else {
+            ElMessage.error(result.error || '文件上传失败')
+          }
+        } catch (error) {
+          ElMessage.error('文件上传失败，请稍后再试')
+          console.error('上传参考文件失败:', error)
+        }
+      }
+      
+      input.click()
+    }
+
     onMounted(() => {
       loadTemplates()
       // 页面加载时设置默认值
@@ -916,7 +973,8 @@ export default {
       generateTitleFromContent,
       generateContentFromTopic,
       previewTemplate,
-      goHome
+      goHome,
+      uploadReferenceFile
     }
   }
 }

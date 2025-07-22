@@ -31,3 +31,78 @@ DeepSeek API配置: 已配置
 2025-07-22 17:27:09,521 - INFO - 获取模板列表
 2025-07-22 17:27:09,601 - INFO - 响应: 200
 127.0.0.1 - - [22/Jul/2025 17:27:09] "GET /api/templates HTTP/1.1" 200 -
+2025-07-22 17:28:41,519 - INFO - 请求: GET /api/templates
+2025-07-22 17:28:41,519 - INFO - 获取模板列表
+2025-07-22 17:28:41,591 - INFO - 响应: 200
+127.0.0.1 - - [22/Jul/2025 17:28:41] "GET /api/templates HTTP/1.1" 200 -
+ * Detected change in '/opt/office_ai_writer/official_document/backend/config_rag.py', reloading
+启动公文生成系统后端服务...
+数据库配置: 47.118.250.53
+DeepSeek API配置: 已配置
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-233-666
+ * Detected change in '/opt/office_ai_writer/official_document/backend/services/minio_service.py', reloading
+启动公文生成系统后端服务...
+数据库配置: 47.118.250.53
+DeepSeek API配置: 已配置
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-233-666
+ * Detected change in '/opt/office_ai_writer/official_document/backend/services/document_parser.py', reloading
+启动公文生成系统后端服务...
+数据库配置: 47.118.250.53
+DeepSeek API配置: 已配置
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-233-666
+ * Detected change in '/opt/office_ai_writer/official_document/backend/models/knowledge_base.py', reloading
+启动公文生成系统后端服务...
+数据库配置: 47.118.250.53
+DeepSeek API配置: 已配置
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-233-666
+ * Detected change in '/opt/office_ai_writer/official_document/backend/services/vector_service.py', reloading
+启动公文生成系统后端服务...
+数据库配置: 47.118.250.53
+DeepSeek API配置: 已配置
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-233-666
+ * Detected change in '/opt/office_ai_writer/official_document/backend/services/knowledge_base_service.py', reloading
+启动公文生成系统后端服务...
+数据库配置: 47.118.250.53
+DeepSeek API配置: 已配置
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-233-666
+ * Detected change in '/opt/office_ai_writer/official_document/backend/routes/knowledge_base.py', reloading
+启动公文生成系统后端服务...
+数据库配置: 47.118.250.53
+DeepSeek API配置: 已配置
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-233-666
+ * Detected change in '/opt/office_ai_writer/official_document/backend/main.py', reloading
+启动公文生成系统后端服务...
+数据库配置: 47.118.250.53
+DeepSeek API配置: 已配置
+ * Restarting with stat
+Traceback (most recent call last):
+  File "/opt/office_ai_writer/official_document/backend/main.py", line 22, in <module>
+    from routes.knowledge_base import knowledge_base_bp
+  File "/opt/office_ai_writer/official_document/backend/routes/knowledge_base.py", line 9, in <module>
+    from services.knowledge_base_service import KnowledgeBaseService
+  File "/opt/office_ai_writer/official_document/backend/services/knowledge_base_service.py", line 14, in <module>
+    from services.minio_service import MinioService
+  File "/opt/office_ai_writer/official_document/backend/services/minio_service.py", line 9, in <module>
+    from minio import Minio
+ModuleNotFoundError: No module named 'minio'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/office_ai_writer/official_document/backend/main.py", line 25, in <module>
+    from backend.routes.knowledge_base import knowledge_base_bp
+ModuleNotFoundError: No module named 'backend'
