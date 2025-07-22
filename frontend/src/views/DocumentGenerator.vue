@@ -233,7 +233,7 @@
                   </el-icon>
                   重置
                 </el-button>
-                <el-button type="success" @click="previewDocument" :disabled="!form.templateType">
+                <el-button type="success" @click="previewTemplate" :disabled="!form.templateType">
                   <el-icon>
                     <View />
                   </el-icon>
@@ -322,6 +322,7 @@
 
 <script>
 import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, ElLoading } from 'element-plus'
 import { Upload, Document, Refresh, View, Download, UploadFilled, Picture } from '@element-plus/icons-vue'
 import MagicIcon from '../components/MagicIcon.vue'
@@ -333,6 +334,7 @@ export default {
     Upload, Document, Refresh, View, Download, UploadFilled, Picture, MagicIcon
   },
   setup() {
+    const router = useRouter()
     const formRef = ref()
     const uploadRef = ref()
     const templates = ref([])
@@ -514,15 +516,28 @@ export default {
           content: form.content || '请在此处输入公文内容',
           template_type: form.templateType,
           metadata: {
-            title: form.title,
+            // 版头字段
+            copyNumber: form.copyNumber || '000001',
+            securityLevel: form.securityLevel || '一般',
+            securityPeriod: form.securityPeriod || '1年',
+            urgencyLevel: form.urgencyLevel || '一般',
             sender: form.sender,
-            recipient: form.recipient || '',
+            senderSymbol: form.senderSymbol || '文件',
             senderCode: form.senderCode || '',
             year: form.year || '',
             serialNumber: form.serialNumber || '',
-            urgencyLevel: form.urgencyLevel || '一般',
-            securityLevel: form.securityLevel || '一般',
+            // 主体字段
+            title: form.title,
+            recipient: form.recipient || '',
+            // 署名字段
+            senderSignature: form.senderSignature || '',
             date: formattedDate,
+            notes: form.notes || '',
+            // 版记字段
+            copyTo: form.copyTo || '',
+            // 印发字段
+            printingOrg: form.printingOrg || '',
+            printingDate: form.printingDate || formattedDate,
             format_type: form.formatType || 'markdown'
           }
         }
@@ -603,6 +618,16 @@ export default {
         window.open(previewUrl, '_blank')
       } else if (form.templateType) {
         window.open(`/preview/${form.templateType}`, '_blank')
+      }
+    }
+
+    const previewTemplate = () => {
+      if (form.templateType) {
+        // 使用Vue Router导航到模板预览页面
+        router.push({
+          name: 'TemplatePreview',
+          params: { templateId: form.templateType }
+        })
       }
     }
 
@@ -860,7 +885,8 @@ export default {
       getTemplateDescription,
       templateImages,
       generateTitleFromContent,
-      generateContentFromTopic
+      generateContentFromTopic,
+      previewTemplate
     }
   }
 }

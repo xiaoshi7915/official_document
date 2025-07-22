@@ -71,7 +71,7 @@ def get_db_connection():
         return None
 
 def replace_text_in_paragraphs(paragraphs, replacements):
-    """支持跨run的文本替换"""
+    """支持跨run的文本替换，并处理段落格式"""
     for paragraph in paragraphs:
         # 合并所有run的文本
         full_text = ''.join(run.text for run in paragraph.runs)
@@ -86,6 +86,43 @@ def replace_text_in_paragraphs(paragraphs, replacements):
                 run.text = ''
             # 只用第一个run写入新内容
             paragraph.runs[0].text = full_text
+
+def apply_document_formatting(doc, content):
+    """应用公文格式要求"""
+    from docx.shared import Pt
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.oxml.shared import OxmlElement, qn
+    
+    # 设置段落格式
+    for paragraph in doc.paragraphs:
+        # 设置行距为30磅
+        paragraph.paragraph_format.line_spacing = Pt(30)
+        
+        # 根据内容设置字体格式
+        for run in paragraph.runs:
+            text = run.text.strip()
+            
+            # 一级标题：一、二、三、... - 三号黑体字
+            if text and text[0] in '一二三四五六七八九十' and text.endswith('、'):
+                run.font.name = '黑体'
+                run.font.size = Pt(16)  # 三号字约16磅
+                run.font.bold = True
+            
+            # 二级标题：（一）（二）（三）... - 三号楷体_GB2312字
+            elif text and text.startswith('（') and text.endswith('）') and len(text) == 4:
+                run.font.name = '楷体_GB2312'
+                run.font.size = Pt(16)
+            
+            # 三级标题：1. 2. 3. ... - 三号仿宋_GB2312字，加粗
+            elif text and text[0].isdigit() and text.endswith('.'):
+                run.font.name = '仿宋_GB2312'
+                run.font.size = Pt(16)
+                run.font.bold = True
+            
+            # 正文：三号仿宋_GB2312字
+            else:
+                run.font.name = '仿宋_GB2312'
+                run.font.size = Pt(16)
 
 
 def replace_text_in_document(doc, replacements):
@@ -372,13 +409,16 @@ def generate_document():
                 '{{content}}': content,
                 '{{date}}': metadata.get('date', ''),
                 '{{notes}}': metadata.get('notes', ''),
-                '{{copyTo}}': metadata.get('copyTo', '抄送机关1，抄送机关2，抄送机关3，抄送机关4，抄送机关5'),
+                '{{copyTo}}': metadata.get('copyTo', '杭州市委宣传部'),
                 '{{printingOrg}}': metadata.get('printingOrg', '印发机关'),
                 '{{printingDate}}': metadata.get('printingDate', '')
             }
             
             # 执行文本替换
             replace_text_in_document(doc, replacements)
+            
+            # 应用公文格式要求
+            apply_document_formatting(doc, content)
             
             # 保存文档
             temp_dir = tempfile.gettempdir()

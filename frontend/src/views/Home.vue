@@ -181,6 +181,17 @@ export default {
       })
     }
 
+    const previewTemplate = (event, template) => {
+      // 阻止事件冒泡
+      event.stopPropagation()
+      console.log('预览模板:', template)
+      // 使用Vue Router导航
+      router.push({
+        name: 'TemplatePreview',
+        params: { templateId: template.id }
+      })
+    }
+
     onMounted(() => {
       loadTemplates()
     })
@@ -189,7 +200,8 @@ export default {
       templates,
       startGenerate,
       viewTemplates,
-      selectTemplate
+      selectTemplate,
+      previewTemplate
     }
   }
 }
