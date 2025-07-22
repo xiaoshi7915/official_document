@@ -88,8 +88,8 @@
 1. **克隆仓库**
 
 ```bash
-git clone https://github.com/yourusername/official-document-generator.git
-cd official-document-generator
+git clone https://github.com/xiaoshi7915/official_document.git
+cd official-document
 ```
 
 2. **使用启动脚本（推荐）**
