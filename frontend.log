@@ -1,0 +1,14 @@
+
+> official-document-generator@1.0.0 dev
+> vite
+
+
+  VITE v4.5.14  ready in 330 ms
+
+  ➜  Local:   http://localhost:8081/
+  ➜  Network: http://192.168.2.251:8081/
+  ➜  Network: http://172.23.0.1:8081/
+  ➜  Network: http://172.19.0.1:8081/
+  ➜  Network: http://172.17.0.1:8081/
+(node:71419) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)

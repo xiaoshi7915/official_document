@@ -42,7 +42,13 @@ except ImportError:
     from backend.config import DB_CONFIG, DEEPSEEK_API_URL, DEEPSEEK_API_KEY, UPLOAD_FOLDER, ALLOWED_EXTENSIONS
 
 app = Flask(__name__)
-CORS(app)
+# 配置CORS，允许特定域名访问
+CORS(app, origins=[
+    'http://localhost:8081',
+    'http://127.0.0.1:8081',
+    'http://121.36.205.70:8081',
+    'http://chenxiaoshivivid.com.cn:8081'
+])
 
 # 简化请求日志中间件
 @app.before_request

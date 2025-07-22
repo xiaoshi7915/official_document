@@ -158,7 +158,11 @@ export default {
     }
 
     const startGenerate = () => {
-      router.push('/generator')
+      // 跳转到公文生成页面，默认选择"报告"类型
+      router.push({
+        path: '/generator',
+        query: { template: 'baogao' }
+      })
     }
 
     const viewTemplates = () => {

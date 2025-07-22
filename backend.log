@@ -1,0 +1,33 @@
+启动公文生成系统后端服务...
+数据库配置: 47.118.250.53
+DeepSeek API配置: 已配置
+ * Serving Flask app 'main'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5002
+ * Running on http://192.168.2.251:5002
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-233-666
+2025-07-22 17:25:56,388 - INFO - 请求: GET /api/templates
+2025-07-22 17:25:56,388 - INFO - 获取模板列表
+2025-07-22 17:25:56,486 - INFO - 响应: 200
+127.0.0.1 - - [22/Jul/2025 17:25:56] "GET /api/templates HTTP/1.1" 200 -
+2025-07-22 17:26:03,157 - INFO - 请求: GET /api/templates
+2025-07-22 17:26:03,158 - INFO - 获取模板列表
+2025-07-22 17:26:03,225 - INFO - 响应: 200
+127.0.0.1 - - [22/Jul/2025 17:26:03] "GET /api/templates HTTP/1.1" 200 -
+2025-07-22 17:26:53,876 - INFO - 请求: GET /api/templates
+2025-07-22 17:26:53,876 - INFO - 获取模板列表
+2025-07-22 17:26:53,946 - INFO - 响应: 200
+127.0.0.1 - - [22/Jul/2025 17:26:53] "GET /api/templates HTTP/1.1" 200 -
+2025-07-22 17:27:01,055 - INFO - 请求: GET /api/templates
+2025-07-22 17:27:01,055 - INFO - 获取模板列表
+2025-07-22 17:27:01,127 - INFO - 响应: 200
+127.0.0.1 - - [22/Jul/2025 17:27:01] "GET /api/templates HTTP/1.1" 200 -
+2025-07-22 17:27:09,521 - INFO - 请求: GET /api/templates
+2025-07-22 17:27:09,521 - INFO - 获取模板列表
+2025-07-22 17:27:09,601 - INFO - 响应: 200
+127.0.0.1 - - [22/Jul/2025 17:27:09] "GET /api/templates HTTP/1.1" 200 -

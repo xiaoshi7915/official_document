@@ -2,8 +2,10 @@
   <div class="document-generator">
     <div class="container">
       <div class="generator-header">
-        <h2>公文生成智能体</h2>
-        <p>选择模板类型，填写相关信息，生成标准公文</p>
+        <div class="header-content">
+          <h2 @click="goHome" class="clickable-title">公文生成智能体</h2>
+          <p>选择模板类型，填写相关信息，生成标准公文</p>
+        </div>
       </div>
 
       <!-- 使用说明 -->
@@ -83,14 +85,14 @@
                 <!-- 版头 -->
                 <el-collapse-item title="版头" name="header">
                   <el-form-item label="份号" prop="copyNumber">
-                    <el-input v-model="form.copyNumber" placeholder="请输入份号" />
+                    <el-input v-model="form.copyNumber" placeholder="请输入份号（默认：000001）" />
                   </el-form-item>
 
                   <!-- 密级和保密期限 -->
                   <el-row :gutter="20">
                     <el-col :span="12">
                       <el-form-item label="密级" prop="securityLevel">
-                        <el-select v-model="form.securityLevel" placeholder="选择密级">
+                        <el-select v-model="form.securityLevel" placeholder="选择密级（默认：一般）">
                           <el-option label="绝密" value="绝密" />
                           <el-option label="机密" value="机密" />
                           <el-option label="秘密" value="秘密" />
@@ -100,13 +102,13 @@
                     </el-col>
                     <el-col :span="12">
                       <el-form-item label="保密期限" prop="securityPeriod">
-                        <el-input v-model="form.securityPeriod" placeholder="请输入保密期限" />
+                        <el-input v-model="form.securityPeriod" placeholder="请输入保密期限（默认：1年）" />
                       </el-form-item>
                     </el-col>
                   </el-row>
 
                   <el-form-item label="紧急程度" prop="urgencyLevel">
-                    <el-select v-model="form.urgencyLevel" placeholder="选择紧急程度">
+                    <el-select v-model="form.urgencyLevel" placeholder="选择紧急程度（默认：一般）">
                       <el-option label="特急" value="特急" />
                       <el-option label="急件" value="急件" />
                       <el-option label="一般" value="一般" />
@@ -115,28 +117,28 @@
 
                   <!-- 发文机关标志 -->
                   <el-form-item label="发文机关名称" prop="sender">
-                    <el-input v-model="form.sender" placeholder="请输入发文机关名称" />
+                    <el-input v-model="form.sender" placeholder="请输入发文机关名称（必填）" />
                   </el-form-item>
 
                   <el-form-item label="标志" prop="senderSymbol">
-                    <el-input v-model="form.senderSymbol" placeholder="请输入标志" />
+                    <el-input v-model="form.senderSymbol" placeholder="请输入标志（默认：文件）" />
                   </el-form-item>
 
                   <!-- 发文字号 -->
                   <el-row :gutter="20">
                     <el-col :span="8">
                       <el-form-item label="发文机关代字" prop="senderCode">
-                        <el-input v-model="form.senderCode" placeholder="如：京政发" />
+                        <el-input v-model="form.senderCode" placeholder="如：京政发（可选）" />
                       </el-form-item>
                     </el-col>
                     <el-col :span="8">
                       <el-form-item label="年份" prop="year">
-                        <el-input v-model="form.year" placeholder="如：2025" />
+                        <el-input v-model="form.year" placeholder="如：2025（默认：当前年份）" />
                       </el-form-item>
                     </el-col>
                     <el-col :span="8">
                       <el-form-item label="发文顺序号" prop="serialNumber">
-                        <el-input v-model="form.serialNumber" placeholder="如：1" />
+                        <el-input v-model="form.serialNumber" placeholder="如：1（可选）" />
                       </el-form-item>
                     </el-col>
                   </el-row>
@@ -145,7 +147,7 @@
                 <!-- 主体 -->
                 <el-collapse-item title="主体" name="body">
                   <el-form-item label="标题" prop="title">
-                    <el-input v-model="form.title" placeholder="请输入公文标题" />
+                    <el-input v-model="form.title" placeholder="请输入公文标题（必填）" />
                     <div class="field-actions">
                       <el-button link @click="generateTitleFromContent" :disabled="!form.content">
                         <el-icon>
@@ -156,11 +158,11 @@
                   </el-form-item>
 
                   <el-form-item label="主送机关" prop="recipient">
-                    <el-input v-model="form.recipient" placeholder="请输入主送机关名称" />
+                    <el-input v-model="form.recipient" placeholder="请输入主送机关名称（可选）" />
                   </el-form-item>
 
                   <el-form-item label="正文内容" prop="content">
-                    <el-input v-model="form.content" type="textarea" :rows="12" placeholder="请输入公文正文内容，支持Markdown格式" />
+                    <el-input v-model="form.content" type="textarea" :rows="12" placeholder="请输入公文正文内容，支持Markdown格式（必填）" />
                     <div class="field-actions">
                       <el-button link @click="generateContentFromTopic">
                         <el-icon>
@@ -179,34 +181,34 @@
                 <!-- 发文机关或签发人署名 -->
                 <el-collapse-item title="发文机关或签发人署名" name="signature">
                   <el-form-item label="发文机关署名" prop="senderSignature">
-                    <el-input v-model="form.senderSignature" placeholder="请输入发文机关署名" />
+                    <el-input v-model="form.senderSignature" placeholder="请输入发文机关署名（可选）" />
                   </el-form-item>
 
                   <el-form-item label="成文日期" prop="date">
-                    <el-date-picker v-model="form.date" type="date" placeholder="选择日期" format="YYYY年MM月DD日"
+                    <el-date-picker v-model="form.date" type="date" placeholder="选择日期（默认：当前日期）" format="YYYY年MM月DD日"
                       value-format="YYYY年MM月DD日" style="width: 100%" />
                   </el-form-item>
 
                   <el-form-item label="附注" prop="notes">
-                    <el-input v-model="form.notes" placeholder="请输入附注" />
+                    <el-input v-model="form.notes" placeholder="请输入附注（可选）" />
                   </el-form-item>
                 </el-collapse-item>
 
                 <!-- 版记 -->
                 <el-collapse-item title="版记" name="footer">
                   <el-form-item label="抄送机关" prop="copyTo">
-                    <el-input v-model="form.copyTo" type="textarea" :rows="3" placeholder="请输入抄送机关，多个机关请用逗号分隔" />
+                    <el-input v-model="form.copyTo" type="textarea" :rows="3" placeholder="请输入抄送机关，多个机关请用逗号分隔（可选）" />
                   </el-form-item>
                 </el-collapse-item>
 
                 <!-- 印发机关和印发日期 -->
                 <el-collapse-item title="印发机关和印发日期" name="printing">
                   <el-form-item label="印发机关" prop="printingOrg">
-                    <el-input v-model="form.printingOrg" placeholder="请输入印发机关" />
+                    <el-input v-model="form.printingOrg" placeholder="请输入印发机关（可选）" />
                   </el-form-item>
 
                   <el-form-item label="印发日期" prop="printingDate">
-                    <el-date-picker v-model="form.printingDate" type="date" placeholder="选择印发日期" format="YYYY年MM月DD日"
+                    <el-date-picker v-model="form.printingDate" type="date" placeholder="选择印发日期（默认：当前日期）" format="YYYY年MM月DD日"
                       value-format="YYYY年MM月DD日" style="width: 100%" />
                   </el-form-item>
                 </el-collapse-item>
@@ -322,7 +324,7 @@
 
 <script>
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox, ElLoading } from 'element-plus'
 import { Upload, Document, Refresh, View, Download, UploadFilled, Picture } from '@element-plus/icons-vue'
 import MagicIcon from '../components/MagicIcon.vue'
@@ -335,6 +337,7 @@ export default {
   },
   setup() {
     const router = useRouter()
+    const route = useRoute()
     const formRef = ref()
     const uploadRef = ref()
     const templates = ref([])
@@ -388,6 +391,22 @@ export default {
       ]
     }
 
+    // 设置默认值的函数
+    const setDefaultValues = () => {
+      const now = new Date()
+      const currentDate = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日`
+      
+      // 为所有非必填字段设置默认值
+      if (!form.copyNumber) form.copyNumber = '000001'
+      if (!form.securityLevel) form.securityLevel = '一般'
+      if (!form.securityPeriod) form.securityPeriod = '1年'
+      if (!form.urgencyLevel) form.urgencyLevel = '一般'
+      if (!form.senderSymbol) form.senderSymbol = '文件'
+      if (!form.year) form.year = now.getFullYear().toString()
+      if (!form.date) form.date = currentDate
+      if (!form.printingDate) form.printingDate = currentDate
+    }
+
     const loadTemplates = async () => {
       try {
         // 定义正确的15种公文类型
@@ -435,8 +454,7 @@ export default {
         }
 
         // 检查URL参数中是否有模板类型
-        const urlParams = new URLSearchParams(window.location.search)
-        const templateParam = urlParams.get('template')
+        const templateParam = route.query.template
         if (templateParam) {
           form.templateType = templateParam
           console.log('从URL参数中获取模板类型:', templateParam)
@@ -465,8 +483,7 @@ export default {
         ]
 
         // 检查URL参数中是否有模板类型
-        const urlParams = new URLSearchParams(window.location.search)
-        const templateParam = urlParams.get('template')
+        const templateParam = route.query.template
         if (templateParam) {
           form.templateType = templateParam
           console.log('从URL参数中获取模板类型:', templateParam)
@@ -504,6 +521,9 @@ export default {
 
         console.log('表单验证通过')
         generating.value = true
+
+        // 设置默认值
+        setDefaultValues()
 
         // 确保日期格式正确
         let formattedDate = form.date
@@ -610,6 +630,8 @@ export default {
     const resetForm = () => {
       if (formRef.value) {
         formRef.value.resetFields()
+        // 重置后设置默认值
+        setDefaultValues()
       }
     }
 
@@ -857,8 +879,15 @@ export default {
       })
     }
 
+    // 返回首页函数
+    const goHome = () => {
+      router.push('/')
+    }
+
     onMounted(() => {
       loadTemplates()
+      // 页面加载时设置默认值
+      setDefaultValues()
     })
 
     return {
@@ -886,7 +915,8 @@ export default {
       templateImages,
       generateTitleFromContent,
       generateContentFromTopic,
-      previewTemplate
+      previewTemplate,
+      goHome
     }
   }
 }
@@ -911,6 +941,16 @@ export default {
   font-size: 28px;
   color: #2c3e50;
   margin-bottom: 10px;
+}
+
+.clickable-title {
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.clickable-title:hover {
+  color: #667eea;
+  text-decoration: underline;
 }
 
 .generator-header p {
