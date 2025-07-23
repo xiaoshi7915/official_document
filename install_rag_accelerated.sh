@@ -59,7 +59,7 @@ cd backend
 # 检查虚拟环境
 if [ -d "venv" ]; then
     echo "激活现有虚拟环境..."
-    source /backend/venv/bin/activate
+    source /venv/bin/activate
 else
     echo "创建新的虚拟环境..."
     python3 -m venv venv
