@@ -1,108 +1,13 @@
-启动公文生成系统后端服务...
-数据库配置: 47.118.250.53
-DeepSeek API配置: 已配置
- * Serving Flask app 'main'
- * Debug mode: on
-[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:5002
- * Running on http://192.168.2.251:5002
-[33mPress CTRL+C to quit[0m
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 145-233-666
-2025-07-22 17:25:56,388 - INFO - 请求: GET /api/templates
-2025-07-22 17:25:56,388 - INFO - 获取模板列表
-2025-07-22 17:25:56,486 - INFO - 响应: 200
-127.0.0.1 - - [22/Jul/2025 17:25:56] "GET /api/templates HTTP/1.1" 200 -
-2025-07-22 17:26:03,157 - INFO - 请求: GET /api/templates
-2025-07-22 17:26:03,158 - INFO - 获取模板列表
-2025-07-22 17:26:03,225 - INFO - 响应: 200
-127.0.0.1 - - [22/Jul/2025 17:26:03] "GET /api/templates HTTP/1.1" 200 -
-2025-07-22 17:26:53,876 - INFO - 请求: GET /api/templates
-2025-07-22 17:26:53,876 - INFO - 获取模板列表
-2025-07-22 17:26:53,946 - INFO - 响应: 200
-127.0.0.1 - - [22/Jul/2025 17:26:53] "GET /api/templates HTTP/1.1" 200 -
-2025-07-22 17:27:01,055 - INFO - 请求: GET /api/templates
-2025-07-22 17:27:01,055 - INFO - 获取模板列表
-2025-07-22 17:27:01,127 - INFO - 响应: 200
-127.0.0.1 - - [22/Jul/2025 17:27:01] "GET /api/templates HTTP/1.1" 200 -
-2025-07-22 17:27:09,521 - INFO - 请求: GET /api/templates
-2025-07-22 17:27:09,521 - INFO - 获取模板列表
-2025-07-22 17:27:09,601 - INFO - 响应: 200
-127.0.0.1 - - [22/Jul/2025 17:27:09] "GET /api/templates HTTP/1.1" 200 -
-2025-07-22 17:28:41,519 - INFO - 请求: GET /api/templates
-2025-07-22 17:28:41,519 - INFO - 获取模板列表
-2025-07-22 17:28:41,591 - INFO - 响应: 200
-127.0.0.1 - - [22/Jul/2025 17:28:41] "GET /api/templates HTTP/1.1" 200 -
- * Detected change in '/opt/office_ai_writer/official_document/backend/config_rag.py', reloading
-启动公文生成系统后端服务...
-数据库配置: 47.118.250.53
-DeepSeek API配置: 已配置
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 145-233-666
- * Detected change in '/opt/office_ai_writer/official_document/backend/services/minio_service.py', reloading
-启动公文生成系统后端服务...
-数据库配置: 47.118.250.53
-DeepSeek API配置: 已配置
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 145-233-666
- * Detected change in '/opt/office_ai_writer/official_document/backend/services/document_parser.py', reloading
-启动公文生成系统后端服务...
-数据库配置: 47.118.250.53
-DeepSeek API配置: 已配置
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 145-233-666
- * Detected change in '/opt/office_ai_writer/official_document/backend/models/knowledge_base.py', reloading
-启动公文生成系统后端服务...
-数据库配置: 47.118.250.53
-DeepSeek API配置: 已配置
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 145-233-666
- * Detected change in '/opt/office_ai_writer/official_document/backend/services/vector_service.py', reloading
-启动公文生成系统后端服务...
-数据库配置: 47.118.250.53
-DeepSeek API配置: 已配置
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 145-233-666
- * Detected change in '/opt/office_ai_writer/official_document/backend/services/knowledge_base_service.py', reloading
-启动公文生成系统后端服务...
-数据库配置: 47.118.250.53
-DeepSeek API配置: 已配置
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 145-233-666
- * Detected change in '/opt/office_ai_writer/official_document/backend/routes/knowledge_base.py', reloading
-启动公文生成系统后端服务...
-数据库配置: 47.118.250.53
-DeepSeek API配置: 已配置
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 145-233-666
- * Detected change in '/opt/office_ai_writer/official_document/backend/main.py', reloading
-启动公文生成系统后端服务...
-数据库配置: 47.118.250.53
-DeepSeek API配置: 已配置
- * Restarting with stat
 Traceback (most recent call last):
-  File "/opt/office_ai_writer/official_document/backend/main.py", line 22, in <module>
+  File "/opt/official_ai_writer/official_document/backend/main.py", line 22, in <module>
     from routes.knowledge_base import knowledge_base_bp
-  File "/opt/office_ai_writer/official_document/backend/routes/knowledge_base.py", line 9, in <module>
+  File "/opt/official_ai_writer/official_document/backend/routes/knowledge_base.py", line 9, in <module>
     from services.knowledge_base_service import KnowledgeBaseService
-  File "/opt/office_ai_writer/official_document/backend/services/knowledge_base_service.py", line 14, in <module>
-    from services.minio_service import MinioService
-  File "/opt/office_ai_writer/official_document/backend/services/minio_service.py", line 9, in <module>
-    from minio import Minio
-ModuleNotFoundError: No module named 'minio'
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/opt/office_ai_writer/official_document/backend/main.py", line 25, in <module>
-    from backend.routes.knowledge_base import knowledge_base_bp
-ModuleNotFoundError: No module named 'backend'
+  File "/opt/official_ai_writer/official_document/backend/services/knowledge_base_service.py", line 16, in <module>
+    from services.vector_service import VectorService
+  File "/opt/official_ai_writer/official_document/backend/services/vector_service.py", line 15, in <module>
+    import chromadb
+  File "/opt/official_ai_writer/official_document/backend/venv/lib64/python3.9/site-packages/chromadb/__init__.py", line 97, in <module>
+    raise RuntimeError(
+RuntimeError: [91mYour system has an unsupported version of sqlite3. Chroma                     requires sqlite3 >= 3.35.0.[0m
+[94mPlease visit                     https://docs.trychroma.com/troubleshooting#sqlite to learn how                     to upgrade.[0m

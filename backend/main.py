@@ -1,3 +1,241 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+官方AI写作系统 - 使用pysqlite3版本
+解决sqlite3版本兼容性问题
+"""
+
+# 强制使用pysqlite3
+import sys
+import os
+from pathlib import Path
+
+# 添加pysqlite3到Python路径
+venv_path = Path(__file__).parent / "venv"
+site_packages = list(venv_path.glob("lib/python*/site-packages"))
+if site_packages:
+    pysqlite3_path = site_packages[0] / "pysqlite3"
+    if pysqlite3_path.exists():
+        sys.path.insert(0, str(pysqlite3_path))
+
+# 导入pysqlite3并替换sqlite3
+try:
+    import pysqlite3
+    import sqlite3
+    # 替换sqlite3模块
+    sys.modules['sqlite3'] = pysqlite3
+    print("✓ 已切换到pysqlite3")
+except ImportError:
+    print("⚠ pysqlite3导入失败，使用系统sqlite3")
+
+# 验证sqlite3版本
+import sqlite3
+print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+官方AI写作系统 - 使用pysqlite3版本
+解决sqlite3版本兼容性问题
+"""
+
+# 强制使用pysqlite3
+import sys
+import os
+from pathlib import Path
+
+# 添加pysqlite3到Python路径
+venv_path = Path(__file__).parent / "venv"
+site_packages = list(venv_path.glob("lib/python*/site-packages"))
+if site_packages:
+    pysqlite3_path = site_packages[0] / "pysqlite3"
+    if pysqlite3_path.exists():
+        sys.path.insert(0, str(pysqlite3_path))
+
+# 导入pysqlite3并替换sqlite3
+try:
+    import pysqlite3
+    import sqlite3
+    # 替换sqlite3模块
+    sys.modules['sqlite3'] = pysqlite3
+    print("✓ 已切换到pysqlite3")
+except ImportError:
+    print("⚠ pysqlite3导入失败，使用系统sqlite3")
+
+# 验证sqlite3版本
+import sqlite3
+print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+官方AI写作系统 - 使用pysqlite3版本
+解决sqlite3版本兼容性问题
+"""
+
+# 强制使用pysqlite3
+import sys
+import os
+from pathlib import Path
+
+# 添加pysqlite3到Python路径
+venv_path = Path(__file__).parent / "venv"
+site_packages = list(venv_path.glob("lib/python*/site-packages"))
+if site_packages:
+    pysqlite3_path = site_packages[0] / "pysqlite3"
+    if pysqlite3_path.exists():
+        sys.path.insert(0, str(pysqlite3_path))
+
+# 导入pysqlite3并替换sqlite3
+try:
+    import pysqlite3
+    import sqlite3
+    # 替换sqlite3模块
+    sys.modules['sqlite3'] = pysqlite3
+    print("✓ 已切换到pysqlite3")
+except ImportError:
+    print("⚠ pysqlite3导入失败，使用系统sqlite3")
+
+# 验证sqlite3版本
+import sqlite3
+print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+官方AI写作系统 - 使用pysqlite3版本
+解决sqlite3版本兼容性问题
+"""
+
+# 强制使用pysqlite3
+import sys
+import os
+from pathlib import Path
+
+# 添加pysqlite3到Python路径
+venv_path = Path(__file__).parent / "venv"
+site_packages = list(venv_path.glob("lib/python*/site-packages"))
+if site_packages:
+    pysqlite3_path = site_packages[0] / "pysqlite3"
+    if pysqlite3_path.exists():
+        sys.path.insert(0, str(pysqlite3_path))
+
+# 导入pysqlite3并替换sqlite3
+try:
+    import pysqlite3
+    import sqlite3
+    # 替换sqlite3模块
+    sys.modules['sqlite3'] = pysqlite3
+    print("✓ 已切换到pysqlite3")
+except ImportError:
+    print("⚠ pysqlite3导入失败，使用系统sqlite3")
+
+# 验证sqlite3版本
+import sqlite3
+print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+官方AI写作系统 - 使用pysqlite3版本
+解决sqlite3版本兼容性问题
+"""
+
+# 强制使用pysqlite3
+import sys
+import os
+from pathlib import Path
+
+# 添加pysqlite3到Python路径
+venv_path = Path(__file__).parent / "venv"
+site_packages = list(venv_path.glob("lib/python*/site-packages"))
+if site_packages:
+    pysqlite3_path = site_packages[0] / "pysqlite3"
+    if pysqlite3_path.exists():
+        sys.path.insert(0, str(pysqlite3_path))
+
+# 导入pysqlite3并替换sqlite3
+try:
+    import pysqlite3
+    import sqlite3
+    # 替换sqlite3模块
+    sys.modules['sqlite3'] = pysqlite3
+    print("✓ 已切换到pysqlite3")
+except ImportError:
+    print("⚠ pysqlite3导入失败，使用系统sqlite3")
+
+# 验证sqlite3版本
+import sqlite3
+print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+官方AI写作系统 - 使用pysqlite3版本
+解决sqlite3版本兼容性问题
+"""
+
+# 强制使用pysqlite3
+import sys
+import os
+from pathlib import Path
+
+# 添加pysqlite3到Python路径
+venv_path = Path(__file__).parent / "venv"
+site_packages = list(venv_path.glob("lib/python*/site-packages"))
+if site_packages:
+    pysqlite3_path = site_packages[0] / "pysqlite3"
+    if pysqlite3_path.exists():
+        sys.path.insert(0, str(pysqlite3_path))
+
+# 导入pysqlite3并替换sqlite3
+try:
+    import pysqlite3
+    import sqlite3
+    # 替换sqlite3模块
+    sys.modules['sqlite3'] = pysqlite3
+    print("✓ 已切换到pysqlite3")
+except ImportError:
+    print("⚠ pysqlite3导入失败，使用系统sqlite3")
+
+# 验证sqlite3版本
+import sqlite3
+print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+官方AI写作系统 - 使用pysqlite3版本
+解决sqlite3版本兼容性问题
+"""
+
+# 强制使用pysqlite3
+import sys
+import os
+from pathlib import Path
+
+# 添加pysqlite3到Python路径
+venv_path = Path(__file__).parent / "venv"
+site_packages = list(venv_path.glob("lib/python*/site-packages"))
+if site_packages:
+    pysqlite3_path = site_packages[0] / "pysqlite3"
+    if pysqlite3_path.exists():
+        sys.path.insert(0, str(pysqlite3_path))
+
+# 导入pysqlite3并替换sqlite3
+try:
+    import pysqlite3
+    import sqlite3
+    # 替换sqlite3模块
+    sys.modules['sqlite3'] = pysqlite3
+    print("✓ 已切换到pysqlite3")
+except ImportError:
+    print("⚠ pysqlite3导入失败，使用系统sqlite3")
+
+# 验证sqlite3版本
+import sqlite3
+print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
+
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import mysql.connector
@@ -53,7 +291,7 @@ app = Flask(__name__)
 CORS(app, origins=[
     'http://localhost:8081',
     'http://127.0.0.1:8081',
-    'http://121.36.205.70:8081',
+    'http://115.190.152.96:8081',
     'http://chenxiaoshivivid.com.cn:8081'
 ])
 
@@ -504,4 +742,4 @@ if __name__ == '__main__':
     print("数据库配置:", DB_CONFIG['host'])
     print("DeepSeek API配置:", "已配置" if DEEPSEEK_API_KEY != "sk-your-api-key-here" else "未配置")
     
-    app.run(debug=True, host='0.0.0.0', port=5002)
+    app.run(debug=True, host='0.0.0.0', port=5003)

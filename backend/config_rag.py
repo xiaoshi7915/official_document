@@ -1,5 +1,5 @@
 """
-RAG知识库配置文件（简化版）
+RAG知识库配置文件（完整版）
 """
 import os
 
@@ -9,19 +9,26 @@ MINIO_CONFIG = {
     'access_key': 'minioadmin',
     'secret_key': 'minioadmin',
     'secure': False,
-    'bucket_name': 'knowledge-base'
+    'bucket_name': 'knowledge-base',
+    'region': 'us-east-1'
 }
 
 # 向量数据库配置
 VECTOR_DB_CONFIG = {
+    'type': 'chroma',  # 数据库类型
     'persist_directory': './vector_db',
     'collection_name': 'knowledge_chunks'
 }
 
 # 知识库配置
 KNOWLEDGE_BASE_CONFIG = {
+    'bucket_name': 'knowledge-base',
+    'region': 'us-east-1',
+    'embedding_model': '/opt/official_ai_writer/official_document/models/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2',
     'chunk_size': 1000,
     'chunk_overlap': 200,
+    'top_k': 5,  # 检索结果数量
+    'similarity_threshold': 0.7,  # 相似度阈值
     'max_file_size': 50 * 1024 * 1024,  # 50MB
     'supported_file_types': ['.pdf', '.docx', '.doc', '.txt', '.md', '.xlsx', '.xls', '.csv']
 }

@@ -2,7 +2,7 @@ import requests
 import json
 
 # 测试API端点
-BASE_URL = "http://localhost:5002"
+BASE_URL = "http://localhost:5003"
 
 def test_get_templates():
     """测试获取模板列表"""
