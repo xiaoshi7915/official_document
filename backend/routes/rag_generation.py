@@ -3,7 +3,6 @@ RAG增强的公文生成API
 集成知识库检索和AI生成
 """
 from flask import Blueprint, request, jsonify
-import logging
 import json
 import time
 from datetime import datetime
@@ -15,10 +14,16 @@ from models.knowledge_management import KnowledgeManagementModel
 from config import DEEPSEEK_API_URL, DEEPSEEK_API_KEY
 import requests
 
+# 导入统一的日志管理器
+try:
+    from utils.logger import get_route_logger
+    logger = get_route_logger('rag_generation')
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
+
 # 创建蓝图
 rag_generation_bp = Blueprint('rag_generation', __name__)
-
-logger = logging.getLogger(__name__)
 
 # 初始化服务
 vector_service = VectorService()

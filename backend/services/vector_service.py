@@ -3,7 +3,6 @@
 使用ChromaDB进行向量存储和检索
 """
 import os
-import logging
 from typing import Dict, List, Any, Optional
 import chromadb
 from chromadb.config import Settings
@@ -11,7 +10,13 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 import json
 
-logger = logging.getLogger(__name__)
+# 导入统一的日志管理器
+try:
+    from utils.logger import get_service_logger
+    logger = get_service_logger('vector_service')
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
 
 class VectorService:
     """向量数据库服务"""

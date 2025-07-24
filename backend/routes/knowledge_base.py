@@ -2,20 +2,25 @@
 知识库API路由
 """
 from flask import Blueprint, request, jsonify
-import logging
 from werkzeug.utils import secure_filename
 import os
 
 from services.knowledge_base_service import KnowledgeBaseService
 from config_rag import SUPPORTED_FILE_TYPES, MAX_FILE_SIZE
 
+# 导入统一的日志管理器
+try:
+    from utils.logger import get_route_logger
+    logger = get_route_logger('knowledge_base')
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
+
 # 创建蓝图
 knowledge_base_bp = Blueprint('knowledge_base', __name__)
 
 # 初始化服务
 knowledge_service = KnowledgeBaseService()
-
-logger = logging.getLogger(__name__)
 
 @knowledge_base_bp.route('/upload', methods=['POST'])
 def upload_file():

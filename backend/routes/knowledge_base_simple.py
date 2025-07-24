@@ -3,7 +3,6 @@
 集成MinerU解析和向量数据库
 """
 from flask import Blueprint, request, jsonify
-import logging
 from werkzeug.utils import secure_filename
 import os
 import hashlib
@@ -19,10 +18,16 @@ from services.mineru_parser import MinerUParser
 from services.vector_service import VectorService
 from models.knowledge_management import KnowledgeManagementModel
 
+# 导入统一的日志管理器
+try:
+    from utils.logger import get_route_logger
+    logger = get_route_logger('knowledge_base_simple')
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
+
 # 创建蓝图
 knowledge_base_simple_bp = Blueprint('knowledge_base_simple', __name__)
-
-logger = logging.getLogger(__name__)
 
 # 支持的文件类型
 SUPPORTED_FILE_TYPES = ['.pdf', '.docx', '.doc', '.txt', '.md', '.xlsx', '.xls', '.csv']

@@ -6,7 +6,6 @@ import os
 import hashlib
 import tempfile
 from typing import Dict, List, Optional, Any
-import logging
 from datetime import datetime
 import threading
 import time
@@ -17,7 +16,13 @@ from services.vector_service import VectorService
 from models.knowledge_base import KnowledgeBaseModel
 from config_rag import MAX_FILE_SIZE
 
-logger = logging.getLogger(__name__)
+# 导入统一的日志管理器
+try:
+    from utils.logger import get_service_logger
+    logger = get_service_logger('knowledge_base_service')
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
 
 class KnowledgeBaseService:
     """知识库管理服务类"""

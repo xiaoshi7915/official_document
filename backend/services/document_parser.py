@@ -5,7 +5,6 @@
 import os
 import tempfile
 from typing import Dict, List, Optional, Any
-import logging
 import io
 
 # 文档解析库
@@ -17,7 +16,13 @@ import openpyxl
 
 from config_rag import SUPPORTED_FILE_TYPES
 
-logger = logging.getLogger(__name__)
+# 导入统一的日志管理器
+try:
+    from utils.logger import get_service_logger
+    logger = get_service_logger('document_parser')
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
 
 class DocumentParser:
     """文档解析服务类"""

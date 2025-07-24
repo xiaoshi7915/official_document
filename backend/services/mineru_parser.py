@@ -4,7 +4,6 @@ MinerU文档解析服务
 """
 import os
 import tempfile
-import logging
 from typing import Dict, List, Any, Optional
 import docx
 import PyPDF2
@@ -12,7 +11,13 @@ import pandas as pd
 import json
 import re
 
-logger = logging.getLogger(__name__)
+# 导入统一的日志管理器
+try:
+    from utils.logger import get_service_logger
+    logger = get_service_logger('mineru_parser')
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
 
 class MinerUParser:
     """MinerU文档解析服务"""

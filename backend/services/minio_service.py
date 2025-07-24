@@ -8,11 +8,16 @@ from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 from minio import Minio
 from minio.error import S3Error
-import logging
 
 from config_rag import MINIO_CONFIG, KNOWLEDGE_BASE_CONFIG
 
-logger = logging.getLogger(__name__)
+# 导入统一的日志管理器
+try:
+    from utils.logger import get_service_logger
+    logger = get_service_logger('minio_service')
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
 
 class MinioService:
     """MinIO S3服务类"""

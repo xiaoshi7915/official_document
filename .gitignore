@@ -92,3 +92,6 @@ models/
 *.sqlite3
 *.log
 *.pid
+*.md
+!README.md
+test_*.py

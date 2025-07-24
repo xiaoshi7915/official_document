@@ -1,13 +1,16 @@
 from flask import Blueprint, request, jsonify
 import requests
 import time
-import logging
 from datetime import datetime
 import os
 
-# 配置日志
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# 导入统一的日志管理器
+try:
+    from utils.logger import get_route_logger
+    logger = get_route_logger('ai_operations')
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
 
 # 创建蓝图
 ai_operations_bp = Blueprint('ai_operations', __name__)

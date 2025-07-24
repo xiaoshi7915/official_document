@@ -31,175 +31,6 @@ except ImportError:
 # 验证sqlite3版本
 import sqlite3
 print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-官方AI写作系统 - 使用pysqlite3版本
-解决sqlite3版本兼容性问题
-"""
-
-# 强制使用pysqlite3
-import sys
-import os
-from pathlib import Path
-
-# 添加pysqlite3到Python路径
-venv_path = Path(__file__).parent / "venv"
-site_packages = list(venv_path.glob("lib/python*/site-packages"))
-if site_packages:
-    pysqlite3_path = site_packages[0] / "pysqlite3"
-    if pysqlite3_path.exists():
-        sys.path.insert(0, str(pysqlite3_path))
-
-# 导入pysqlite3并替换sqlite3
-try:
-    import pysqlite3
-    import sqlite3
-    # 替换sqlite3模块
-    sys.modules['sqlite3'] = pysqlite3
-    print("✓ 已切换到pysqlite3")
-except ImportError:
-    print("⚠ pysqlite3导入失败，使用系统sqlite3")
-
-# 验证sqlite3版本
-import sqlite3
-print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-官方AI写作系统 - 使用pysqlite3版本
-解决sqlite3版本兼容性问题
-"""
-
-# 强制使用pysqlite3
-import sys
-import os
-from pathlib import Path
-
-# 添加pysqlite3到Python路径
-venv_path = Path(__file__).parent / "venv"
-site_packages = list(venv_path.glob("lib/python*/site-packages"))
-if site_packages:
-    pysqlite3_path = site_packages[0] / "pysqlite3"
-    if pysqlite3_path.exists():
-        sys.path.insert(0, str(pysqlite3_path))
-
-# 导入pysqlite3并替换sqlite3
-try:
-    import pysqlite3
-    import sqlite3
-    # 替换sqlite3模块
-    sys.modules['sqlite3'] = pysqlite3
-    print("✓ 已切换到pysqlite3")
-except ImportError:
-    print("⚠ pysqlite3导入失败，使用系统sqlite3")
-
-# 验证sqlite3版本
-import sqlite3
-print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-官方AI写作系统 - 使用pysqlite3版本
-解决sqlite3版本兼容性问题
-"""
-
-# 强制使用pysqlite3
-import sys
-import os
-from pathlib import Path
-
-# 添加pysqlite3到Python路径
-venv_path = Path(__file__).parent / "venv"
-site_packages = list(venv_path.glob("lib/python*/site-packages"))
-if site_packages:
-    pysqlite3_path = site_packages[0] / "pysqlite3"
-    if pysqlite3_path.exists():
-        sys.path.insert(0, str(pysqlite3_path))
-
-# 导入pysqlite3并替换sqlite3
-try:
-    import pysqlite3
-    import sqlite3
-    # 替换sqlite3模块
-    sys.modules['sqlite3'] = pysqlite3
-    print("✓ 已切换到pysqlite3")
-except ImportError:
-    print("⚠ pysqlite3导入失败，使用系统sqlite3")
-
-# 验证sqlite3版本
-import sqlite3
-print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-官方AI写作系统 - 使用pysqlite3版本
-解决sqlite3版本兼容性问题
-"""
-
-# 强制使用pysqlite3
-import sys
-import os
-from pathlib import Path
-
-# 添加pysqlite3到Python路径
-venv_path = Path(__file__).parent / "venv"
-site_packages = list(venv_path.glob("lib/python*/site-packages"))
-if site_packages:
-    pysqlite3_path = site_packages[0] / "pysqlite3"
-    if pysqlite3_path.exists():
-        sys.path.insert(0, str(pysqlite3_path))
-
-# 导入pysqlite3并替换sqlite3
-try:
-    import pysqlite3
-    import sqlite3
-    # 替换sqlite3模块
-    sys.modules['sqlite3'] = pysqlite3
-    print("✓ 已切换到pysqlite3")
-except ImportError:
-    print("⚠ pysqlite3导入失败，使用系统sqlite3")
-
-# 验证sqlite3版本
-import sqlite3
-print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-官方AI写作系统 - 使用pysqlite3版本
-解决sqlite3版本兼容性问题
-"""
-
-# 强制使用pysqlite3
-import sys
-import os
-from pathlib import Path
-
-# 添加pysqlite3到Python路径
-venv_path = Path(__file__).parent / "venv"
-site_packages = list(venv_path.glob("lib/python*/site-packages"))
-if site_packages:
-    pysqlite3_path = site_packages[0] / "pysqlite3"
-    if pysqlite3_path.exists():
-        sys.path.insert(0, str(pysqlite3_path))
-
-# 导入pysqlite3并替换sqlite3
-try:
-    import pysqlite3
-    import sqlite3
-    # 替换sqlite3模块
-    sys.modules['sqlite3'] = pysqlite3
-    print("✓ 已切换到pysqlite3")
-except ImportError:
-    print("⚠ pysqlite3导入失败，使用系统sqlite3")
-
-# 验证sqlite3版本
-import sqlite3
 print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
 
 #!/usr/bin/env python3
@@ -275,23 +106,20 @@ except ImportError:
     # 如果导入失败，尝试使用相对导入
     from backend.routes.ai_operations import ai_operations_bp
 
-# 配置日志 - 只记录关键信息
-if not os.path.exists('logs'):
-    os.makedirs('logs')
-    
-# 创建日志文件处理器
-file_handler = RotatingFileHandler('logs/backend.log', maxBytes=10485760, backupCount=10)
-file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-
-# 获取Flask日志记录器
-logger = logging.getLogger('backend')
-logger.addHandler(file_handler)
-logger.setLevel(logging.INFO)  # 改为INFO级别，减少详细日志
-
-# 添加控制台处理器
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-logger.addHandler(console_handler)
+# 导入统一的日志管理器
+try:
+    from utils.logger import get_app_logger, setup_logging
+    setup_logging()
+    logger = get_app_logger()
+except ImportError:
+    # 如果导入失败，使用简单的日志配置
+    import logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    logger = logging.getLogger('backend.app')
 
 try:
     from config import DB_CONFIG, DEEPSEEK_API_URL, DEEPSEEK_API_KEY, UPLOAD_FOLDER, ALLOWED_EXTENSIONS
@@ -327,6 +155,29 @@ def log_request_info():
 def log_response_info(response):
     logger.info(f'响应: {response.status_code}')
     return response
+
+# 错误处理中间件
+@app.errorhandler(400)
+def handle_bad_request(error):
+    """处理400错误，特别是SSL/TLS协议错误"""
+    if 'Bad request version' in str(error):
+        logger.warning(f"检测到SSL/TLS协议错误，可能是HTTPS请求发送到HTTP服务器: {error}")
+        return jsonify({
+            'error': '协议错误',
+            'message': '请使用HTTP协议访问此服务',
+            'status': 'protocol_error'
+        }), 400
+    return jsonify({'error': '请求错误'}), 400
+
+@app.errorhandler(404)
+def handle_not_found(error):
+    """处理404错误"""
+    logger.warning(f"请求的路径不存在: {request.path}")
+    return jsonify({
+        'error': '路径不存在',
+        'message': f'请求的路径 {request.path} 不存在',
+        'available_paths': ['/api/templates', '/api/generate', '/api/upload', '/signin']
+    }), 404
 
 # 确保上传文件夹存在
 if not os.path.exists(UPLOAD_FOLDER):
@@ -406,6 +257,44 @@ def replace_text_in_document(doc, replacements):
         for row in table.rows:
             for cell in row.cells:
                 replace_text_in_paragraphs(cell.paragraphs, replacements)
+
+# 在现有路由之前添加signin路由
+@app.route('/signin', methods=['GET', 'POST'])
+def signin():
+    """处理登录请求"""
+    logger.info(f"请求: {request.method} /signin")
+    
+    if request.method == 'GET':
+        # GET请求返回登录页面或重定向到前端
+        return jsonify({
+            'message': '请使用POST方法进行登录',
+            'status': 'redirect',
+            'frontend_url': 'http://localhost:8005'
+        }), 200
+    
+    elif request.method == 'POST':
+        # POST请求处理登录逻辑
+        try:
+            data = request.get_json()
+            username = data.get('username', '')
+            password = data.get('password', '')
+            
+            # 这里可以添加实际的用户验证逻辑
+            # 目前返回成功响应
+            logger.info(f"登录请求: 用户 {username}")
+            
+            return jsonify({
+                'success': True,
+                'message': '登录成功',
+                'user': username
+            }), 200
+            
+        except Exception as e:
+            logger.error(f"登录处理错误: {e}")
+            return jsonify({
+                'success': False,
+                'message': '登录失败'
+            }), 400
 
 @app.route('/api/templates', methods=['GET'])
 def get_templates():
