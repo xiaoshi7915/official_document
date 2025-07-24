@@ -86,3 +86,9 @@ backend/temp/
 # Exceptions
 !frontend/public/template_images/*.png
 !templates/*.docx
+
+models/
+
+*.sqlite3
+*.log
+*.pid

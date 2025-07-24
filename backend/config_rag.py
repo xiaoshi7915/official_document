@@ -35,10 +35,10 @@ KNOWLEDGE_BASE_CONFIG = {
 
 # 数据库配置
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': '123456',
-    'database': 'official_document',
+    'host': '47.118.250.53',
+    'user': 'official_doc',
+    'password': 'admin123456!',
+    'database': 'official_doc',
     'charset': 'utf8mb4'
 }
 
