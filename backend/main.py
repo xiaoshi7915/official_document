@@ -257,10 +257,10 @@ from logging.handlers import RotatingFileHandler
 
 # 导入知识库相关模块
 try:
-    from routes.knowledge_base import knowledge_base_bp
+    from routes.knowledge_base_simple import knowledge_base_simple_bp as knowledge_base_bp
 except ImportError:
     # 如果导入失败，尝试使用相对导入
-    from backend.routes.knowledge_base import knowledge_base_bp
+    from backend.routes.knowledge_base_simple import knowledge_base_simple_bp as knowledge_base_bp
 
 # 配置日志 - 只记录关键信息
 if not os.path.exists('logs'):

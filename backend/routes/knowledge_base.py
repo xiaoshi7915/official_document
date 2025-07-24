@@ -47,7 +47,7 @@ def upload_file():
         
         # 检查文件类型
         filename = secure_filename(file.filename)
-        file_ext = os.path.splitext(filename)[1].lower().lstrip('.')
+        file_ext = os.path.splitext(filename)[1].lower()  # 保留点号
         
         if file_ext not in SUPPORTED_FILE_TYPES:
             return jsonify({
@@ -68,7 +68,7 @@ def upload_file():
         
         # 读取文件数据
         file_data = file.read()
-        content_type = file.content_type or SUPPORTED_FILE_TYPES.get(file_ext)
+        content_type = file.content_type or 'application/octet-stream'
         
         # 上传并处理文件
         result = knowledge_service.upload_and_process_file(file_data, filename, content_type)
