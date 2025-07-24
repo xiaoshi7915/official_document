@@ -1,6 +1,6 @@
 """
 简化的知识库API路由
-不依赖MinIO，使用本地文件系统
+集成MinerU解析和向量数据库
 """
 from flask import Blueprint, request, jsonify
 import logging
@@ -11,6 +11,13 @@ from datetime import datetime
 import tempfile
 import docx
 import json
+import threading
+import time
+
+# 导入自定义服务
+from services.mineru_parser import MinerUParser
+from services.vector_service import VectorService
+from models.knowledge_management import KnowledgeManagementModel
 
 # 创建蓝图
 knowledge_base_simple_bp = Blueprint('knowledge_base_simple', __name__)
@@ -26,10 +33,15 @@ KNOWLEDGE_DIR = 'knowledge_files'
 if not os.path.exists(KNOWLEDGE_DIR):
     os.makedirs(KNOWLEDGE_DIR)
 
+# 初始化服务
+mineru_parser = MinerUParser()
+vector_service = VectorService()
+db_model = KnowledgeManagementModel()
+
 @knowledge_base_simple_bp.route('/upload', methods=['POST'])
 def upload_file():
     """
-    上传文件到知识库（简化版）
+    上传文件到知识库（集成MinerU解析和向量数据库）
     
     POST /api/knowledge/upload
     Content-Type: multipart/form-data
@@ -81,7 +93,6 @@ def upload_file():
         # 生成唯一文件名
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         unique_id = hashlib.md5(file_data).hexdigest()[:8]
-        file_ext = os.path.splitext(filename)[1]
         file_name_without_ext = os.path.splitext(filename)[0]
         final_filename = f"{file_name_without_ext}_{timestamp}_{unique_id}{file_ext}"
         
@@ -90,24 +101,8 @@ def upload_file():
         with open(file_path, 'wb') as f:
             f.write(file_data)
         
-        # 解析文件内容
-        content = ""
-        try:
-            if file_ext == '.docx':
-                doc = docx.Document(file_path)
-                content = '\n'.join([para.text for para in doc.paragraphs])
-            elif file_ext in ['.txt', '.md']:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-            else:
-                content = f"文件类型 {file_ext} 暂不支持内容解析"
-        except Exception as parse_error:
-            logger.error(f"文件解析错误: {parse_error}")
-            content = f"文件解析失败: {str(parse_error)}"
-        
-        # 保存文件信息到JSON文件
+        # 准备文件信息
         file_info = {
-            'file_id': unique_id,
             'file_name': final_filename,
             'original_name': filename,
             'file_type': file_ext,
@@ -115,24 +110,101 @@ def upload_file():
             'file_path': file_path,
             'content_hash': hashlib.md5(file_data).hexdigest(),
             'upload_time': datetime.now().isoformat(),
-            'content_length': len(content),
-            'status': 'completed'
+            'status': 'processing'
         }
         
-        info_file_path = os.path.join(KNOWLEDGE_DIR, f"{unique_id}.json")
-        with open(info_file_path, 'w', encoding='utf-8') as f:
-            json.dump(file_info, f, ensure_ascii=False, indent=2)
+        # 插入数据库记录
+        file_id = db_model.insert_knowledge_file(file_info)
         
-        logger.info(f"文件上传成功: {final_filename}, 内容长度: {len(content)}")
+        if not file_id:
+            return jsonify({
+                'success': False,
+                'error': '数据库插入失败'
+            }), 500
+        
+        # 异步处理文档
+        def process_document():
+            try:
+                logger.info(f"开始处理文档: {file_id}")
+                
+                # 1. 使用MinerU解析文档
+                parse_result = mineru_parser.parse_document(file_data, filename)
+                
+                if not parse_result['success']:
+                    db_model.update_file_status(file_id, 'failed', {
+                        'error': parse_result['error'],
+                        'parse_status': 'failed'
+                    })
+                    return
+                
+                # 2. 更新解析状态
+                db_model.update_file_status(file_id, 'processing', {
+                    'parse_status': 'completed',
+                    'content_length': parse_result['content_length'],
+                    'metadata': parse_result['metadata']
+                })
+                
+                # 3. 文本分块
+                chunks = mineru_parser.chunk_text(parse_result['content'])
+                
+                if not chunks:
+                    db_model.update_file_status(file_id, 'failed', {
+                        'error': '文本分块失败',
+                        'parse_status': 'completed',
+                        'vector_status': 'failed'
+                    })
+                    return
+                
+                # 4. 添加到向量数据库
+                vector_ids = vector_service.add_documents_to_vector_db(chunks, file_id)
+                
+                if not vector_ids:
+                    db_model.update_file_status(file_id, 'failed', {
+                        'error': '向量化失败',
+                        'parse_status': 'completed',
+                        'vector_status': 'failed'
+                    })
+                    return
+                
+                # 5. 保存文档块到数据库
+                for i, chunk in enumerate(chunks):
+                    chunk['vector_id'] = vector_ids[i] if i < len(vector_ids) else ''
+                
+                db_model.insert_document_chunks(file_id, chunks)
+                
+                # 6. 更新最终状态
+                db_model.update_file_status(file_id, 'completed', {
+                    'parse_status': 'completed',
+                    'vector_status': 'completed',
+                    'chunk_count': len(chunks),
+                    'vector_count': len(vector_ids),
+                    'content_length': parse_result['content_length']
+                })
+                
+                logger.info(f"文档处理完成: {file_id}")
+                
+            except Exception as e:
+                logger.error(f"文档处理失败: {file_id}, 错误: {e}")
+                db_model.update_file_status(file_id, 'failed', {
+                    'error': str(e),
+                    'parse_status': 'failed',
+                    'vector_status': 'failed'
+                })
+        
+        # 启动异步处理线程
+        thread = threading.Thread(target=process_document)
+        thread.daemon = True
+        thread.start()
+        
+        logger.info(f"文件上传成功: {final_filename}, 开始异步处理")
         
         return jsonify({
             'success': True,
-            'file_id': unique_id,
+            'file_id': file_id,
             'file_name': final_filename,
             'original_name': filename,
-            'status': 'completed',
-            'message': '文件上传成功，已保存到知识库',
-            'content_length': len(content)
+            'status': 'processing',
+            'message': '文件上传成功，正在处理中...'
         }), 200
         
     except Exception as e:
@@ -147,26 +219,16 @@ def get_knowledge_files():
     """
     获取知识库文件列表
     
-    GET /api/knowledge/files
+    GET /api/knowledge/files?status=completed&limit=100
     
     Returns:
         JSON响应
     """
     try:
-        files = []
+        status = request.args.get('status')
+        limit = int(request.args.get('limit', 100))
         
-        # 读取所有JSON信息文件
-        for filename in os.listdir(KNOWLEDGE_DIR):
-            if filename.endswith('.json'):
-                try:
-                    with open(os.path.join(KNOWLEDGE_DIR, filename), 'r', encoding='utf-8') as f:
-                        file_info = json.load(f)
-                        files.append(file_info)
-                except Exception as e:
-                    logger.error(f"读取文件信息失败 {filename}: {e}")
-        
-        # 按上传时间排序
-        files.sort(key=lambda x: x.get('upload_time', ''), reverse=True)
+        files = db_model.get_knowledge_files(status, limit)
         
         return jsonify({
             'success': True,
@@ -192,25 +254,29 @@ def delete_knowledge_file(file_id):
         JSON响应
     """
     try:
-        # 查找对应的JSON文件
-        json_file_path = os.path.join(KNOWLEDGE_DIR, f"{file_id}.json")
+        # 获取文件信息
+        files = db_model.get_knowledge_files()
+        file_info = None
+        for file in files:
+            if file['file_id'] == file_id:
+                file_info = file
+                break
         
-        if not os.path.exists(json_file_path):
+        if not file_info:
             return jsonify({
                 'success': False,
                 'error': '文件不存在'
             }), 404
         
-        # 读取文件信息
-        with open(json_file_path, 'r', encoding='utf-8') as f:
-            file_info = json.load(f)
+        # 删除向量数据库中的文档块
+        vector_service.delete_file_chunks(file_id)
         
         # 删除实际文件
         if os.path.exists(file_info['file_path']):
             os.remove(file_info['file_path'])
         
-        # 删除JSON信息文件
-        os.remove(json_file_path)
+        # 删除数据库记录（通过外键约束自动删除相关记录）
+        # 这里需要在数据库模型中添加删除方法
         
         logger.info(f"文件删除成功: {file_info['file_name']}")
         
@@ -224,6 +290,107 @@ def delete_knowledge_file(file_id):
         return jsonify({
             'success': False,
             'error': f'删除文件失败: {str(e)}'
+        }), 500
+
+@knowledge_base_simple_bp.route('/search', methods=['POST'])
+def search_knowledge_base():
+    """
+    搜索知识库
+    
+    POST /api/knowledge/search
+    Content-Type: application/json
+    
+    Body:
+    {
+        "query": "搜索查询",
+        "top_k": 5,
+        "file_ids": ["file_id1", "file_id2"]
+    }
+    
+    Returns:
+        JSON响应
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or 'query' not in data:
+            return jsonify({
+                'success': False,
+                'error': '缺少查询参数'
+            }), 400
+        
+        query = data['query'].strip()
+        if not query:
+            return jsonify({
+                'success': False,
+                'error': '查询内容不能为空'
+            }), 400
+        
+        top_k = data.get('top_k', 5)
+        file_ids = data.get('file_ids')
+        
+        # 搜索向量数据库
+        similar_chunks = vector_service.search_similar_chunks(query, top_k, file_ids)
+        
+        # 更新使用统计
+        for chunk in similar_chunks:
+            if 'file_id' in chunk['metadata']:
+                db_model.update_usage_stats(chunk['metadata']['file_id'])
+        
+        return jsonify({
+            'success': True,
+            'query': query,
+            'results': similar_chunks,
+            'total': len(similar_chunks)
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"知识库搜索失败: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'知识库搜索失败: {str(e)}'
+        }), 500
+
+@knowledge_base_simple_bp.route('/stats', methods=['GET'])
+def get_knowledge_stats():
+    """
+    获取知识库统计信息
+    
+    GET /api/knowledge/stats
+    
+    Returns:
+        JSON响应
+    """
+    try:
+        # 获取数据库统计
+        files = db_model.get_knowledge_files()
+        
+        # 获取向量数据库统计
+        vector_stats = vector_service.get_collection_stats()
+        
+        # 统计状态分布
+        status_stats = {}
+        for file in files:
+            status = file.get('status', 'unknown')
+            status_stats[status] = status_stats.get(status, 0) + 1
+        
+        stats = {
+            'total_files': len(files),
+            'status_distribution': status_stats,
+            'vector_stats': vector_stats,
+            'storage_dir': KNOWLEDGE_DIR
+        }
+        
+        return jsonify({
+            'success': True,
+            'stats': stats
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"获取统计信息失败: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'获取统计信息失败: {str(e)}'
         }), 500
 
 @knowledge_base_simple_bp.route('/health', methods=['GET'])
@@ -242,12 +409,17 @@ def health_check():
             os.makedirs(KNOWLEDGE_DIR)
         
         # 统计文件数量
-        file_count = len([f for f in os.listdir(KNOWLEDGE_DIR) if f.endswith('.json')])
+        files = db_model.get_knowledge_files()
+        file_count = len(files)
+        
+        # 检查向量数据库
+        vector_stats = vector_service.get_collection_stats()
         
         return jsonify({
             'success': True,
             'status': 'healthy',
             'file_count': file_count,
+            'vector_chunks': vector_stats['total_chunks'],
             'storage_dir': KNOWLEDGE_DIR
         }), 200
         

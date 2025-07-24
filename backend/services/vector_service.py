@@ -1,157 +1,63 @@
 """
-向量化服务类
-实现文档向量化和检索功能
+向量数据库服务
+使用ChromaDB进行向量存储和检索
 """
 import os
-import json
-import hashlib
-from typing import List, Dict, Optional, Any, Tuple
 import logging
-import numpy as np
-from datetime import datetime
-
-# 向量化相关库
-from sentence_transformers import SentenceTransformer
+from typing import Dict, List, Any, Optional
 import chromadb
 from chromadb.config import Settings
-
-from config_rag import KNOWLEDGE_BASE_CONFIG, VECTOR_DB_CONFIG
+import numpy as np
+from sentence_transformers import SentenceTransformer
+import json
 
 logger = logging.getLogger(__name__)
 
 class VectorService:
-    """向量化服务类"""
+    """向量数据库服务"""
     
     def __init__(self):
-        """初始化向量化服务"""
+        """初始化向量服务"""
         try:
-            # 初始化向量模型
-            self.embedding_model = SentenceTransformer(KNOWLEDGE_BASE_CONFIG['embedding_model'])
-            logger.info(f"向量模型加载成功: {KNOWLEDGE_BASE_CONFIG['embedding_model']}")
+            # 初始化ChromaDB
+            self.persist_directory = "./vector_db"
+            if not os.path.exists(self.persist_directory):
+                os.makedirs(self.persist_directory)
             
-            # 初始化向量数据库
-            self._init_vector_db()
-            
-            # 配置参数
-            self.chunk_size = KNOWLEDGE_BASE_CONFIG['chunk_size']
-            self.chunk_overlap = KNOWLEDGE_BASE_CONFIG['chunk_overlap']
-            self.top_k = KNOWLEDGE_BASE_CONFIG['top_k']
-            self.similarity_threshold = KNOWLEDGE_BASE_CONFIG['similarity_threshold']
-            
-        except Exception as e:
-            logger.error(f"向量化服务初始化失败: {e}")
-            raise
-    
-    def _init_vector_db(self):
-        """初始化向量数据库"""
-        try:
-            if VECTOR_DB_CONFIG['type'] == 'chroma':
-                # 确保持久化目录存在
-                persist_dir = VECTOR_DB_CONFIG['persist_directory']
-                os.makedirs(persist_dir, exist_ok=True)
-                
-                # 初始化ChromaDB客户端
-                self.vector_db = chromadb.PersistentClient(
-                    path=persist_dir,
-                    settings=Settings(
-                        anonymized_telemetry=False,
-                        allow_reset=True
-                    )
+            self.client = chromadb.PersistentClient(
+                path=self.persist_directory,
+                settings=Settings(
+                    anonymized_telemetry=False,
+                    allow_reset=True
                 )
-                
-                # 获取或创建集合
-                self.collection = self.vector_db.get_or_create_collection(
-                    name=VECTOR_DB_CONFIG['collection_name'],
-                    metadata={"hnsw:space": "cosine"}
+            )
+            
+            # 初始化嵌入模型
+            model_path = "/opt/official_ai_writer/official_document/models/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+            if os.path.exists(model_path):
+                self.embedding_model = SentenceTransformer(model_path)
+                logger.info(f"使用本地嵌入模型: {model_path}")
+            else:
+                # 如果本地模型不存在，使用在线模型
+                self.embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+                logger.info("使用在线嵌入模型")
+            
+            # 获取或创建集合
+            self.collection_name = "knowledge_chunks"
+            try:
+                self.collection = self.client.get_collection(self.collection_name)
+                logger.info(f"获取现有集合: {self.collection_name}")
+            except:
+                self.collection = self.client.create_collection(
+                    name=self.collection_name,
+                    metadata={"description": "知识库文档块向量存储"}
                 )
-                
-                logger.info(f"ChromaDB初始化成功，集合: {VECTOR_DB_CONFIG['collection_name']}")
-            else:
-                raise ValueError(f"不支持的向量数据库类型: {VECTOR_DB_CONFIG['type']}")
-                
-        except Exception as e:
-            logger.error(f"向量数据库初始化失败: {e}")
-            raise
-    
-    def chunk_text(self, text: str, file_name: str) -> List[Dict[str, Any]]:
-        """
-        文本分块
-        
-        Args:
-            text: 文本内容
-            file_name: 文件名
+                logger.info(f"创建新集合: {self.collection_name}")
             
-        Returns:
-            文本块列表
-        """
-        try:
-            chunks = []
-            words = text.split()
-            
-            if len(words) <= self.chunk_size:
-                # 文本较短，直接作为一个块
-                chunk = {
-                    'chunk_index': 0,
-                    'chunk_text': text,
-                    'chunk_size': len(words),
-                    'file_name': file_name
-                }
-                chunks.append(chunk)
-            else:
-                # 文本较长，需要分块
-                chunk_index = 0
-                start = 0
-                
-                while start < len(words):
-                    end = min(start + self.chunk_size, len(words))
-                    chunk_words = words[start:end]
-                    chunk_text = ' '.join(chunk_words)
-                    
-                    chunk = {
-                        'chunk_index': chunk_index,
-                        'chunk_text': chunk_text,
-                        'chunk_size': len(chunk_words),
-                        'file_name': file_name
-                    }
-                    chunks.append(chunk)
-                    
-                    # 计算下一个块的起始位置（考虑重叠）
-                    start = end - self.chunk_overlap
-                    chunk_index += 1
-                    
-                    # 避免无限循环
-                    if start >= len(words) - self.chunk_overlap:
-                        break
-            
-            logger.info(f"文本分块完成，文件: {file_name}, 块数: {len(chunks)}")
-            return chunks
+            logger.info("向量数据库服务初始化成功")
             
         except Exception as e:
-            logger.error(f"文本分块失败: {e}")
-            raise
-    
-    def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
-        """
-        生成文本向量
-        
-        Args:
-            texts: 文本列表
-            
-        Returns:
-            向量列表
-        """
-        try:
-            embeddings = self.embedding_model.encode(texts, convert_to_tensor=False)
-            
-            # 转换为列表格式
-            if isinstance(embeddings, np.ndarray):
-                embeddings = embeddings.tolist()
-            
-            logger.info(f"向量生成成功，文本数量: {len(texts)}")
-            return embeddings
-            
-        except Exception as e:
-            logger.error(f"向量生成失败: {e}")
+            logger.error(f"向量数据库服务初始化失败: {e}")
             raise
     
     def add_documents_to_vector_db(self, chunks: List[Dict[str, Any]], file_id: str) -> List[str]:
@@ -167,241 +73,214 @@ class VectorService:
         """
         try:
             if not chunks:
+                logger.warning("没有文档块需要添加")
                 return []
             
-            # 提取文本内容
-            texts = [chunk['chunk_text'] for chunk in chunks]
-            
-            # 生成向量
-            embeddings = self.generate_embeddings(texts)
-            
-            # 生成向量ID
-            vector_ids = []
+            # 准备数据
+            documents = []
             metadatas = []
+            ids = []
             
             for i, chunk in enumerate(chunks):
-                # 生成唯一的向量ID
-                vector_id = f"{file_id}_{chunk['chunk_index']}_{hashlib.md5(chunk['chunk_text'].encode()).hexdigest()[:8]}"
-                vector_ids.append(vector_id)
+                chunk_id = f"{file_id}_chunk_{i}"
                 
-                # 构建元数据
-                metadata = {
+                documents.append(chunk['content'])
+                metadatas.append({
                     'file_id': file_id,
-                    'file_name': chunk['file_name'],
-                    'chunk_index': chunk['chunk_index'],
-                    'chunk_size': chunk['chunk_size'],
-                    'upload_time': datetime.now().isoformat()
-                }
-                metadatas.append(metadata)
+                    'chunk_index': i,
+                    'chunk_size': chunk.get('size', len(chunk['content'])),
+                    'start': chunk.get('start', 0),
+                    'end': chunk.get('end', len(chunk['content']))
+                })
+                ids.append(chunk_id)
             
             # 添加到向量数据库
             self.collection.add(
-                embeddings=embeddings,
-                documents=texts,
+                documents=documents,
                 metadatas=metadatas,
-                ids=vector_ids
+                ids=ids
             )
             
-            logger.info(f"文档块添加到向量数据库成功，文件ID: {file_id}, 块数: {len(chunks)}")
-            return vector_ids
+            logger.info(f"成功添加 {len(chunks)} 个文档块到向量数据库")
+            return ids
             
         except Exception as e:
             logger.error(f"添加文档块到向量数据库失败: {e}")
-            raise
+            return []
     
-    def search_similar_documents(self, query: str, top_k: Optional[int] = None) -> List[Dict[str, Any]]:
+    def search_similar_chunks(self, query: str, top_k: int = 5, file_ids: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         """
-        搜索相似文档
+        搜索相似文档块
         
         Args:
             query: 查询文本
             top_k: 返回结果数量
+            file_ids: 限制搜索的文件ID列表
             
         Returns:
-            相似文档列表
+            相似文档块列表
         """
         try:
-            if top_k is None:
-                top_k = self.top_k
+            # 构建查询条件
+            where = None
+            if file_ids:
+                where = {"file_id": {"$in": file_ids}}
             
-            # 生成查询向量
-            query_embedding = self.generate_embeddings([query])[0]
-            
-            # 搜索相似文档
+            # 执行搜索
             results = self.collection.query(
-                query_embeddings=[query_embedding],
+                query_texts=[query],
                 n_results=top_k,
-                include=['documents', 'metadatas', 'distances']
+                where=where
             )
             
-            # 处理搜索结果
-            similar_docs = []
+            # 格式化结果
+            similar_chunks = []
             if results['documents'] and results['documents'][0]:
-                for i, (doc, metadata, distance) in enumerate(zip(
-                    results['documents'][0],
-                    results['metadatas'][0],
-                    results['distances'][0]
-                )):
-                    # 计算相似度分数（距离转换为相似度）
-                    similarity_score = 1 - distance
-                    
-                    # 过滤低相似度的结果
-                    if similarity_score >= self.similarity_threshold:
-                        similar_doc = {
-                            'document': doc,
-                            'metadata': metadata,
-                            'similarity_score': round(similarity_score, 4),
-                            'rank': i + 1
-                        }
-                        similar_docs.append(similar_doc)
+                for i, doc in enumerate(results['documents'][0]):
+                    similar_chunks.append({
+                        'content': doc,
+                        'metadata': results['metadatas'][0][i] if results['metadatas'] and results['metadatas'][0] else {},
+                        'distance': results['distances'][0][i] if results['distances'] and results['distances'][0] else 0,
+                        'id': results['ids'][0][i] if results['ids'] and results['ids'][0] else ''
+                    })
             
-            logger.info(f"文档搜索完成，查询: {query[:50]}..., 结果数: {len(similar_docs)}")
-            return similar_docs
+            logger.info(f"搜索到 {len(similar_chunks)} 个相似文档块")
+            return similar_chunks
             
         except Exception as e:
-            logger.error(f"文档搜索失败: {e}")
+            logger.error(f"搜索相似文档块失败: {e}")
             return []
     
-    def delete_document_vectors(self, file_id: str) -> bool:
+    def get_collection_stats(self) -> Dict[str, Any]:
+        """获取集合统计信息"""
+        try:
+            count = self.collection.count()
+            
+            # 获取所有文档的元数据
+            results = self.collection.get()
+            
+            # 统计文件数量
+            file_ids = set()
+            if results['metadatas']:
+                for metadata in results['metadatas']:
+                    if metadata and 'file_id' in metadata:
+                        file_ids.add(metadata['file_id'])
+            
+            return {
+                'total_chunks': count,
+                'total_files': len(file_ids),
+                'file_ids': list(file_ids)
+            }
+            
+        except Exception as e:
+            logger.error(f"获取集合统计信息失败: {e}")
+            return {
+                'total_chunks': 0,
+                'total_files': 0,
+                'file_ids': []
+            }
+    
+    def delete_file_chunks(self, file_id: str) -> bool:
         """
-        删除文档向量
+        删除指定文件的所有文档块
         
         Args:
             file_id: 文件ID
             
         Returns:
-            是否删除成功
+            是否成功
         """
         try:
-            # 查询该文件的所有向量
+            # 删除指定文件ID的所有文档块
+            self.collection.delete(
+                where={"file_id": file_id}
+            )
+            
+            logger.info(f"成功删除文件 {file_id} 的所有文档块")
+            return True
+            
+        except Exception as e:
+            logger.error(f"删除文件文档块失败: {e}")
+            return False
+    
+    def get_file_chunks(self, file_id: str) -> List[Dict[str, Any]]:
+        """
+        获取指定文件的所有文档块
+        
+        Args:
+            file_id: 文件ID
+            
+        Returns:
+            文档块列表
+        """
+        try:
             results = self.collection.get(
                 where={"file_id": file_id}
             )
             
-            if results['ids']:
-                # 删除向量
-                self.collection.delete(ids=results['ids'])
-                logger.info(f"文档向量删除成功，文件ID: {file_id}, 向量数: {len(results['ids'])}")
-                return True
-            else:
-                logger.warning(f"未找到文档向量，文件ID: {file_id}")
-                return False
-                
-        except Exception as e:
-            logger.error(f"删除文档向量失败: {e}")
-            return False
-    
-    def get_vector_db_stats(self) -> Dict[str, Any]:
-        """
-        获取向量数据库统计信息
-        
-        Returns:
-            统计信息
-        """
-        try:
-            # 获取集合信息
-            collection_info = self.collection.get()
+            chunks = []
+            if results['documents']:
+                for i, doc in enumerate(results['documents']):
+                    chunks.append({
+                        'content': doc,
+                        'metadata': results['metadatas'][i] if results['metadatas'] else {},
+                        'id': results['ids'][i] if results['ids'] else ''
+                    })
             
-            # 统计文件数量
-            file_ids = set()
-            for metadata in collection_info['metadatas']:
-                if metadata and 'file_id' in metadata:
-                    file_ids.add(metadata['file_id'])
+            # 按chunk_index排序
+            chunks.sort(key=lambda x: x['metadata'].get('chunk_index', 0))
             
-            stats = {
-                'total_vectors': len(collection_info['ids']),
-                'total_files': len(file_ids),
-                'collection_name': self.collection.name,
-                'embedding_model': KNOWLEDGE_BASE_CONFIG['embedding_model']
-            }
-            
-            logger.info(f"向量数据库统计信息: {stats}")
-            return stats
+            logger.info(f"获取到文件 {file_id} 的 {len(chunks)} 个文档块")
+            return chunks
             
         except Exception as e:
-            logger.error(f"获取向量数据库统计信息失败: {e}")
-            return {
-                'total_vectors': 0,
-                'total_files': 0,
-                'collection_name': 'unknown',
-                'embedding_model': 'unknown'
-            }
+            logger.error(f"获取文件文档块失败: {e}")
+            return []
     
-    def update_document_vectors(self, file_id: str, chunks: List[Dict[str, Any]]) -> bool:
+    def update_chunk_metadata(self, chunk_id: str, metadata: Dict[str, Any]) -> bool:
         """
-        更新文档向量
+        更新文档块元数据
         
         Args:
-            file_id: 文件ID
-            chunks: 新的文档块列表
+            chunk_id: 文档块ID
+            metadata: 新的元数据
             
         Returns:
-            是否更新成功
+            是否成功
         """
         try:
-            # 先删除旧的向量
-            self.delete_document_vectors(file_id)
+            # 获取现有文档块
+            results = self.collection.get(ids=[chunk_id])
             
-            # 添加新的向量
-            self.add_documents_to_vector_db(chunks, file_id)
+            if not results['documents']:
+                logger.warning(f"文档块不存在: {chunk_id}")
+                return False
             
-            logger.info(f"文档向量更新成功，文件ID: {file_id}")
+            # 更新元数据
+            self.collection.update(
+                ids=[chunk_id],
+                metadatas=[metadata]
+            )
+            
+            logger.info(f"成功更新文档块元数据: {chunk_id}")
             return True
             
         except Exception as e:
-            logger.error(f"更新文档向量失败: {e}")
+            logger.error(f"更新文档块元数据失败: {e}")
             return False
     
-    def batch_search(self, queries: List[str], top_k: Optional[int] = None) -> List[List[Dict[str, Any]]]:
-        """
-        批量搜索
-        
-        Args:
-            queries: 查询列表
-            top_k: 每个查询返回结果数量
-            
-        Returns:
-            搜索结果列表
-        """
+    def clear_collection(self) -> bool:
+        """清空集合"""
         try:
-            if top_k is None:
-                top_k = self.top_k
-            
-            # 生成查询向量
-            query_embeddings = self.generate_embeddings(queries)
-            
-            # 批量搜索
-            results = self.collection.query(
-                query_embeddings=query_embeddings,
-                n_results=top_k,
-                include=['documents', 'metadatas', 'distances']
+            self.client.delete_collection(self.collection_name)
+            self.collection = self.client.create_collection(
+                name=self.collection_name,
+                metadata={"description": "知识库文档块向量存储"}
             )
             
-            # 处理搜索结果
-            all_results = []
-            for query_idx, query in enumerate(queries):
-                query_results = []
-                if results['documents'] and results['documents'][query_idx]:
-                    for i, (doc, metadata, distance) in enumerate(zip(
-                        results['documents'][query_idx],
-                        results['metadatas'][query_idx],
-                        results['distances'][query_idx]
-                    )):
-                        similarity_score = 1 - distance
-                        if similarity_score >= self.similarity_threshold:
-                            similar_doc = {
-                                'document': doc,
-                                'metadata': metadata,
-                                'similarity_score': round(similarity_score, 4),
-                                'rank': i + 1
-                            }
-                            query_results.append(similar_doc)
-                
-                all_results.append(query_results)
-            
-            logger.info(f"批量搜索完成，查询数: {len(queries)}")
-            return all_results
+            logger.info("成功清空向量数据库集合")
+            return True
             
         except Exception as e:
-            logger.error(f"批量搜索失败: {e}")
-            return [[] for _ in queries] 
+            logger.error(f"清空集合失败: {e}")
+            return False 

@@ -25,6 +25,9 @@
 - ✅ 离线AI模型支持
 - ✅ 完整的SPA路由支持
 - ✅ API代理和静态文件服务
+- ✅ 现代化响应式界面
+- ✅ 系统监控和管理工具
+- ✅ 一键快速修复功能
 
 ## 快速开始
 
@@ -50,6 +53,16 @@ bash 修复版启动脚本.sh
 
 - **前端界面**：http://localhost:8081
 - **后端API**：http://localhost:5003
+
+### 4. 系统监控
+
+```bash
+# 查看系统状态
+bash 系统监控脚本.sh status
+
+# 启动监控工具
+bash 系统监控脚本.sh
+```
 
 ## 详细部署步骤
 
@@ -104,6 +117,10 @@ official_document/
 
 - **`前端服务器.py`**：改进的前端服务器，支持SPA路由、API代理、静态文件服务
 
+### 系统监控
+
+- **`系统监控脚本.sh`**：系统监控和管理工具，支持服务状态检查、日志查看、快速修复等功能
+
 ### 配置文件
 
 - **`backend/config_rag.py`**：RAG知识库配置
@@ -156,12 +173,28 @@ tail -f frontend.log
 
 ## 服务管理
 
+### 使用监控工具
+
+```bash
+# 启动监控工具
+bash 系统监控脚本.sh
+
+# 快速查看状态
+bash 系统监控脚本.sh status
+```
+
+### 手动管理
+
 ```bash
 # 停止服务
 pkill -f 'python.*main.py' && pkill -f '前端服务器.py'
 
 # 重启服务
 bash 修复版启动脚本.sh
+
+# 查看日志
+tail -f backend/backend.log
+tail -f frontend.log
 ```
 
 ## 开发说明

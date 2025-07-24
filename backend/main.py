@@ -262,6 +262,13 @@ except ImportError:
     # 如果导入失败，尝试使用相对导入
     from backend.routes.knowledge_base_simple import knowledge_base_simple_bp as knowledge_base_bp
 
+# 导入RAG生成相关模块
+try:
+    from routes.rag_generation import rag_generation_bp
+except ImportError:
+    # 如果导入失败，尝试使用相对导入
+    from backend.routes.rag_generation import rag_generation_bp
+
 # 配置日志 - 只记录关键信息
 if not os.path.exists('logs'):
     os.makedirs('logs')
@@ -297,6 +304,9 @@ CORS(app, origins=[
 
 # 注册知识库蓝图
 app.register_blueprint(knowledge_base_bp, url_prefix='/api/knowledge')
+
+# 注册RAG生成蓝图
+app.register_blueprint(rag_generation_bp, url_prefix='/api/rag')
 
 # 简化请求日志中间件
 @app.before_request
@@ -457,15 +467,52 @@ def generate_title():
 
 @app.route('/api/generate-content', methods=['POST'])
 def generate_content():
-    """从主题生成内容"""
+    """从主题生成内容（支持参考文件）"""
     data = request.json
     topic = data.get('topic', '')
     document_type = data.get('document_type', '')
+    reference_files = data.get('reference_files', [])
+    use_reference_files = data.get('use_reference_files', True)
     
     if not topic:
         return jsonify({'success': False, 'message': '主题不能为空'})
     
     try:
+        # 构建系统提示词
+        system_prompt = f"你是一个专业的公文写作助手，请根据提供的主题生成一篇符合{document_type}格式规范的公文内容。内容应该结构清晰、语言规范、符合公文写作要求。请直接返回正文内容，不要包含标题。"
+        
+        # 构建用户提示词
+        user_prompt = f"请根据以下主题生成{document_type}内容：\n\n{topic}"
+        
+        # 如果有参考文件且用户选择使用参考文件
+        if reference_files and use_reference_files:
+            try:
+                # 从知识库获取参考文件内容
+                reference_content = ""
+                for file_id in reference_files:
+                    # 查询文件信息
+                    conn = get_db_connection()
+                    if conn:
+                        cursor = conn.cursor(dictionary=True)
+                        cursor.execute("SELECT * FROM knowledge_files WHERE id = %s", (file_id,))
+                        file_info = cursor.fetchone()
+                        cursor.close()
+                        conn.close()
+                        
+                        if file_info and file_info.get('metadata'):
+                            metadata = json.loads(file_info['metadata'])
+                            if 'content' in metadata:
+                                reference_content += f"\n\n参考文件内容：\n{metadata['content'][:1000]}..."  # 限制长度
+                
+                if reference_content:
+                    user_prompt += f"\n\n参考文件内容：{reference_content}"
+                    system_prompt += "请结合参考文件的内容，确保生成的内容与参考文件保持一致性和相关性。"
+                
+            except Exception as e:
+                logger.warning(f"获取参考文件内容失败: {e}")
+                # 即使参考文件获取失败，也继续生成内容
+        
+        # 调用AI接口
         response = requests.post(
             DEEPSEEK_API_URL,
             headers={
@@ -477,11 +524,11 @@ def generate_content():
                 "messages": [
                     {
                         "role": "system", 
-                        "content": f"你是一个专业的公文写作助手，请根据提供的主题生成一篇符合{document_type}格式规范的公文内容。内容应该结构清晰、语言规范、符合公文写作要求。请直接返回正文内容，不要包含标题。"
+                        "content": system_prompt
                     },
                     {
                         "role": "user", 
-                        "content": f"请根据以下主题生成{document_type}内容：\n\n{topic}"
+                        "content": user_prompt
                     }
                 ],
                 "max_tokens": 2000,

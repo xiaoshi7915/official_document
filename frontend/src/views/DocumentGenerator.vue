@@ -163,22 +163,24 @@
 
                   <el-form-item label="正文内容" prop="content">
                     <el-input v-model="form.content" type="textarea" :rows="12" placeholder="请输入公文正文内容，支持Markdown格式（必填）" />
-                    <div class="field-actions">
-                      <el-button link @click="generateContentFromTopic">
-                        <el-icon>
-                          <MagicIcon />
-                        </el-icon> 从主题生成正文
-                      </el-button>
-                      <el-button link @click="uploadFile">
-                        <el-icon>
-                          <Upload />
-                        </el-icon> 上传文件作为正文
-                      </el-button>
-                      <el-button link @click="uploadReferenceFile" type="warning">
-                        <el-icon>
-                          <FolderAdd />
-                        </el-icon> 上传文件作为参考
-                      </el-button>
+                    
+                    <!-- 智能生成工具栏 -->
+                    <div class="smart-generation-toolbar">
+                      <div class="toolbar-section">
+                        <div class="section-title">智能生成</div>
+                                      <div class="button-group">
+                <el-button type="primary" size="small" @click="generateContentFromTopic">
+                  <el-icon class="button-icon"><MagicIcon /></el-icon>
+                  从主题生成正文
+                </el-button>
+                <el-button type="success" size="small" @click="uploadFile">
+                  <el-icon class="button-icon"><Upload /></el-icon>
+                  上传文件作为正文
+                </el-button>
+              </div>
+                      </div>
+                      
+
                     </div>
                   </el-form-item>
                 </el-collapse-item>
@@ -328,10 +330,10 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, h } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage, ElMessageBox, ElLoading } from 'element-plus'
-import { Upload, Document, Refresh, View, Download, UploadFilled, Picture, FolderAdd } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox, ElLoading, ElTooltip } from 'element-plus'
+import { Upload, Document, Refresh, View, Download, UploadFilled, Picture, FolderAdd, Delete, Setting } from '@element-plus/icons-vue'
 import MagicIcon from '../components/MagicIcon.vue'
 import { getTemplates, generateDocument as generateDocumentApi, uploadFile as uploadFileApi } from '../api/document'
 
@@ -380,6 +382,12 @@ export default {
       printingDate: '',
       formatType: 'markdown'
     })
+
+    // 参考文件相关数据
+    const referenceFiles = ref([])
+    const topicInput = ref('')
+    const topicReferenceFiles = ref([])
+    const useReferenceFiles = ref(true) // 是否使用参考文件增强生成
 
     const rules = {
       templateType: [
@@ -837,51 +845,123 @@ export default {
 
     // 从主题生成内容
     const generateContentFromTopic = async () => {
-      // 弹出对话框，让用户输入主题
-      ElMessageBox.prompt('请输入公文主题', '生成内容', {
-        confirmButtonText: '生成',
+      console.log('generateContentFromTopic 函数被调用')
+      
+      // 重置临时数据
+      topicInput.value = ''
+      topicReferenceFiles.value = []
+      
+      console.log('准备创建弹框')
+      
+      // 创建自定义对话框
+      const formValues = await ElMessageBox({
+        title: '从主题生成正文',
+        message: h('div', { class: 'topic-generator-dialog' }, [
+          // 主题输入区域
+          h('div', { class: 'dialog-section' }, [
+            h('div', { class: 'section-header' }, [
+              h('span', { class: 'section-title' }, '📝 公文主题')
+            ]),
+            h('textarea', {
+              value: topicInput.value,
+              onInput: (e) => topicInput.value = e.target.value,
+              placeholder: '请输入公文主题或关键内容，支持多行输入\n\n例如：\n关于推进数字化转型工作的报告\n\n请详细描述您要生成的公文主题、背景、要求等',
+              rows: 8,
+              class: 'topic-textarea',
+              style: 'width: 100%; min-width: 700px; padding: 16px; border: 2px solid #e4e7ed; border-radius: 8px; font-size: 14px; line-height: 1.6; resize: vertical; box-sizing: border-box;'
+            })
+          ]),
+          
+          // 参考文件区域
+          h('div', { class: 'dialog-section' }, [
+            h('div', { class: 'section-header' }, [
+              h('span', { class: 'section-title' }, '📁 参考文件（可选）')
+            ]),
+            h('div', { class: 'reference-section' }, [
+              h('button', {
+                type: 'button',
+                onClick: () => uploadReferenceFileForTopic(),
+                style: 'background: #409eff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;'
+              }, '📤 上传文件作为参考'),
+              h('div', { class: 'upload-tip' }, [
+                h('small', '支持格式：PDF、DOCX、DOC、TXT、MD、XLSX、XLS、CSV（最大50MB）')
+              ]),
+              
+              // 已上传的参考文件列表
+              h('div', { id: 'topic-reference-files-container' })
+            ])
+          ])
+        ]),
+        showCancelButton: true,
+        confirmButtonText: '开始生成',
         cancelButtonText: '取消',
-        inputPlaceholder: '请输入公文主题或关键内容'
-      }).then(async ({ value }) => {
-        if (!value) {
-          ElMessage.warning('请输入主题')
-          return
+        customClass: 'topic-generator-message-box',
+        customStyle: {
+          width: '750px',
+          maxWidth: '95vw'
+        },
+        beforeClose: (action, instance, done) => {
+          if (action === 'confirm' && !topicInput.value.trim()) {
+            ElMessage.warning('请输入主题')
+            return
+          }
+          done()
         }
+      })
 
+      console.log('弹框关闭，formValues:', formValues)
+      console.log('topicInput.value:', topicInput.value)
+      console.log('topicInput.value.trim():', topicInput.value.trim())
+
+      if (formValues === 'confirm' && topicInput.value.trim()) {
         try {
+          console.log('开始生成内容，主题:', topicInput.value)
+          console.log('参考文件:', topicReferenceFiles.value)
+          
           const loading = ElLoading.service({
             lock: true,
             text: '正在生成内容...',
             background: 'rgba(0, 0, 0, 0.7)'
           })
 
-          const response = await fetch('/api/generate-content', {
+          const requestBody = {
+            topic: topicInput.value,
+            document_type: getTemplateName(form.templateType),
+            title: topicInput.value,
+            reference_file_ids: topicReferenceFiles.value.map(f => f.file_id),
+            user_id: 'anonymous'
+          }
+          
+          console.log('发送请求体:', requestBody)
+
+          const response = await fetch('/api/rag/generate-with-rag', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-              topic: value,
-              document_type: getTemplateName(form.templateType)
-            })
+            body: JSON.stringify(requestBody)
           })
 
+          console.log('收到响应状态:', response.status)
           const result = await response.json()
+          console.log('收到响应数据:', result)
+          
           loading.close()
 
           if (result.success) {
             form.content = result.content
             ElMessage.success('内容生成成功')
+            // 清空临时数据
+            topicInput.value = ''
+            topicReferenceFiles.value = []
           } else {
             ElMessage.error(result.message || '内容生成失败')
           }
         } catch (error) {
-          ElMessage.error('内容生成失败，请稍后再试')
           console.error('生成内容失败:', error)
+          ElMessage.error('内容生成失败，请稍后再试')
         }
-      }).catch(() => {
-        // 用户取消操作
-      })
+      }
     }
 
     // 返回首页函数
@@ -891,6 +971,16 @@ export default {
 
     // 上传文件作为参考
     const uploadReferenceFile = () => {
+      uploadFileToKnowledge(referenceFiles)
+    }
+
+    // 为主题生成上传文件作为参考
+    const uploadReferenceFileForTopic = () => {
+      uploadFileToKnowledge(topicReferenceFiles, true)
+    }
+
+    // 通用上传文件到知识库方法
+    const uploadFileToKnowledge = async (fileList, isInDialog = false) => {
       // 创建文件输入元素
       const input = document.createElement('input')
       input.type = 'file'
@@ -927,8 +1017,24 @@ export default {
           
           if (result.success) {
             ElMessage.success('文件上传成功，已添加到知识库作为参考')
-            // 可以在这里显示上传的文件信息
+            
+            // 添加到文件列表
+            const fileInfo = {
+              file_id: result.file_id,
+              original_name: file.name,
+              file_size: file.size,
+              file_type: file.type,
+              upload_time: new Date().toISOString(),
+              preview_content: result.preview_content || '文件内容预览不可用'
+            }
+            
+            fileList.value.push(fileInfo)
             console.log('上传的文件信息:', result)
+            
+            // 如果在弹框中，动态更新文件列表显示
+            if (isInDialog) {
+              updateDialogFileList()
+            }
           } else {
             ElMessage.error(result.error || '文件上传失败')
           }
@@ -939,6 +1045,82 @@ export default {
       }
       
       input.click()
+    }
+
+    // 移除参考文件
+    const removeReferenceFile = (fileId) => {
+      const index = referenceFiles.value.findIndex(f => f.file_id === fileId)
+      if (index > -1) {
+        referenceFiles.value.splice(index, 1)
+        ElMessage.success('已移除参考文件')
+      }
+    }
+
+    // 移除主题参考文件
+    const removeTopicReferenceFile = (fileId) => {
+      const index = topicReferenceFiles.value.findIndex(f => f.file_id === fileId)
+      if (index > -1) {
+        topicReferenceFiles.value.splice(index, 1)
+        ElMessage.success('已移除参考文件')
+      }
+    }
+
+    // 格式化文件大小
+    const formatFileSize = (bytes) => {
+      if (bytes === 0) return '0 B'
+      const k = 1024
+      const sizes = ['B', 'KB', 'MB', 'GB']
+      const i = Math.floor(Math.log(bytes) / Math.log(k))
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+    }
+
+    // 清空所有参考文件
+    const clearAllReferenceFiles = () => {
+      referenceFiles.value = []
+      ElMessage.success('已清空所有参考文件')
+    }
+    
+    // 更新弹框中的文件列表显示
+    const updateDialogFileList = () => {
+      const container = document.querySelector('#topic-reference-files-container')
+      if (container && topicReferenceFiles.value.length > 0) {
+        container.innerHTML = `
+          <div class="reference-files" style="margin-top: 12px;">
+            <div class="reference-files-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span class="reference-files-title" style="font-weight: 500; color: #303133;">已上传的参考文件（${topicReferenceFiles.value.length}个）</span>
+              <button type="button" onclick="window.clearTopicFiles()" style="background: none; border: none; color: #f56c6c; cursor: pointer; font-size: 12px;">🗑️ 清空全部</button>
+            </div>
+            <div class="reference-files-list">
+              ${topicReferenceFiles.value.map(file => `
+                <div class="reference-file-item" style="display: flex; align-items: center; justify-content: space-between; padding: 8px; border: 1px solid #e4e7ed; border-radius: 4px; margin-bottom: 8px; background: #f8f9fa;">
+                  <div class="file-info" style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                    <span>📄</span>
+                    <span class="file-name" style="font-weight: 500; color: #303133;">${file.original_name}</span>
+                    <span class="file-size" style="color: #909399; font-size: 12px;">(${formatFileSize(file.file_size)})</span>
+                  </div>
+                  <button type="button" onclick="window.removeTopicFile('${file.file_id}')" style="background: none; border: none; color: #f56c6c; cursor: pointer; padding: 4px; border-radius: 4px;">❌</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `
+        
+        // 添加全局函数
+        window.clearTopicFiles = () => {
+          topicReferenceFiles.value = []
+          updateDialogFileList()
+        }
+        
+        window.removeTopicFile = (fileId) => {
+          const index = topicReferenceFiles.value.findIndex(f => f.file_id === fileId)
+          if (index > -1) {
+            topicReferenceFiles.value.splice(index, 1)
+            updateDialogFileList()
+          }
+        }
+      } else if (container) {
+        container.innerHTML = ''
+      }
     }
 
     onMounted(() => {
@@ -958,6 +1140,10 @@ export default {
       recentDocuments,
       uploadUrl,
       activeCollapse,
+      referenceFiles,
+      topicInput,
+      topicReferenceFiles,
+      useReferenceFiles,
       onTemplateChange,
       generateDocument,
       resetForm,
@@ -974,7 +1160,13 @@ export default {
       generateContentFromTopic,
       previewTemplate,
       goHome,
-      uploadReferenceFile
+      uploadReferenceFile,
+      uploadReferenceFileForTopic,
+      removeReferenceFile,
+      removeTopicReferenceFile,
+      clearAllReferenceFiles,
+      updateDialogFileList,
+      formatFileSize
     }
   }
 }
@@ -986,8 +1178,9 @@ export default {
 }
 
 .container {
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
+  padding: 0 10px;
 }
 
 .generator-header {
@@ -1018,6 +1211,8 @@ export default {
 
 .form-card {
   margin-bottom: 20px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
 }
 
 .card-header {
@@ -1263,5 +1458,194 @@ export default {
 
 :deep(.el-upload-dragger) {
   width: 100%;
+}
+
+/* 上传文件相关样式 */
+.upload-tip {
+  margin-top: 8px;
+  color: #909399;
+  font-size: 12px;
+}
+
+.reference-files {
+  margin-top: 15px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.reference-files-title {
+  font-size: 13px;
+  color: #495057;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.reference-file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.reference-file-item:last-child {
+  border-bottom: none;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  cursor: pointer;
+}
+
+.file-name {
+  font-size: 13px;
+  color: #495057;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-size {
+  font-size: 11px;
+  color: #6c757d;
+}
+
+/* 智能生成工具栏样式 */
+.smart-generation-toolbar {
+  margin-top: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.toolbar-section {
+  margin-bottom: 20px;
+}
+
+.toolbar-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.button-icon {
+  font-size: 14px;
+}
+
+.reference-section {
+  margin-top: 10px;
+}
+
+.reference-files-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.reference-files-list {
+  max-height: 120px;
+  overflow-y: auto;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  background: white;
+}
+
+/* 主题生成对话框样式 */
+.topic-generator-dialog {
+  padding: 10px 0;
+}
+
+.dialog-section {
+  margin-bottom: 25px;
+}
+
+.dialog-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.section-icon {
+  color: #409eff;
+  font-size: 14px;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.topic-textarea {
+  width: 100%;
+  border-radius: 6px;
+  border: 2px solid #e4e7ed;
+  transition: border-color 0.3s;
+}
+
+.topic-textarea:focus {
+  border-color: #409eff;
+}
+
+.generation-options {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.option-tip {
+  margin-top: 8px;
+  color: #6c757d;
+}
+
+/* 自定义消息框样式 */
+:deep(.topic-generator-message-box) {
+  width: 800px;
+  max-width: 95vw;
+}
+
+:deep(.topic-generator-message-box .el-message-box__content) {
+  padding: 30px;
+}
+
+:deep(.topic-generator-message-box .el-message-box__header) {
+  padding: 30px 30px 0;
+}
+
+:deep(.topic-generator-message-box .el-message-box__footer) {
+  padding: 0 30px 30px;
+}
+
+:deep(.topic-generator-message-box .el-message-box__title) {
+  font-size: 18px;
+  font-weight: 600;
 }
 </style>
