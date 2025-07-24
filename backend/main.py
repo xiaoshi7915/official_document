@@ -1,78 +1,73 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-官方AI写作系统 - 使用pysqlite3版本
-解决sqlite3版本兼容性问题
+官方AI写作系统 - 主应用入口
+集成第一阶段优化：环境变量、安全配置、输入验证、异常处理、代码去重
 """
 
-# 强制使用pysqlite3
-import sys
-import os
-from pathlib import Path
-
-# 添加pysqlite3到Python路径
-venv_path = Path(__file__).parent / "venv"
-site_packages = list(venv_path.glob("lib/python*/site-packages"))
-if site_packages:
-    pysqlite3_path = site_packages[0] / "pysqlite3"
-    if pysqlite3_path.exists():
-        sys.path.insert(0, str(pysqlite3_path))
-
-# 导入pysqlite3并替换sqlite3
+# 初始化SQLite（消除重复代码）
 try:
-    import pysqlite3
+    from utils.sqlite_init import init_sqlite
+    init_sqlite()
+except ImportError as e:
+    print(f"警告：SQLite初始化失败: {e}")
+    # 如果导入失败，使用基础的SQLite初始化
+    import sys
+    import os
+    from pathlib import Path
+    
+    venv_path = Path(__file__).parent / "venv"
+    site_packages = list(venv_path.glob("lib/python*/site-packages"))
+    if site_packages:
+        pysqlite3_path = site_packages[0] / "pysqlite3"
+        if pysqlite3_path.exists():
+            sys.path.insert(0, str(pysqlite3_path))
+    
+    try:
+        import pysqlite3
+        import sqlite3
+        sys.modules['sqlite3'] = pysqlite3
+        print("✓ 已切换到pysqlite3")
+    except ImportError:
+        print("⚠ pysqlite3导入失败，使用系统sqlite3")
+    
     import sqlite3
-    # 替换sqlite3模块
-    sys.modules['sqlite3'] = pysqlite3
-    print("✓ 已切换到pysqlite3")
-except ImportError:
-    print("⚠ pysqlite3导入失败，使用系统sqlite3")
+    print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
 
-# 验证sqlite3版本
-import sqlite3
-print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
-print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-官方AI写作系统 - 使用pysqlite3版本
-解决sqlite3版本兼容性问题
-"""
-
-# 强制使用pysqlite3
-import sys
-import os
-from pathlib import Path
-
-# 添加pysqlite3到Python路径
-venv_path = Path(__file__).parent / "venv"
-site_packages = list(venv_path.glob("lib/python*/site-packages"))
-if site_packages:
-    pysqlite3_path = site_packages[0] / "pysqlite3"
-    if pysqlite3_path.exists():
-        sys.path.insert(0, str(pysqlite3_path))
-
-# 导入pysqlite3并替换sqlite3
+# 导入第一阶段优化的模块
 try:
-    import pysqlite3
-    import sqlite3
-    # 替换sqlite3模块
-    sys.modules['sqlite3'] = pysqlite3
-    print("✓ 已切换到pysqlite3")
-except ImportError:
-    print("⚠ pysqlite3导入失败，使用系统sqlite3")
-
-# 验证sqlite3版本
-import sqlite3
-print(f"当前使用的SQLite版本: {sqlite3.sqlite_version}")
+    from config.security import init_security_config, security_config
+    from utils.validators import InputValidator, FileUploadValidator, ContentValidator
+    from utils.error_handler import register_error_handlers, create_validation_error, create_file_upload_error
+    from utils.logger import get_app_logger, setup_logging
+except ImportError as e:
+    print(f"警告：无法导入优化模块: {e}")
+    # 使用基础日志配置
+    import logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    logger = logging.getLogger('backend.app')
+else:
+    # 初始化优化模块
+    try:
+        setup_logging()
+        logger = get_app_logger()
+        init_security_config()
+        logger.info("第一阶段优化模块初始化成功")
+    except Exception as e:
+        print(f"警告：优化模块初始化失败: {e}")
+        import logging
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger('backend.app')
 
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import mysql.connector
 import os
 import json
-import logging
 from werkzeug.utils import secure_filename
 import requests
 from datetime import datetime
@@ -83,67 +78,116 @@ from docx.shared import Inches
 from docx.oxml.shared import OxmlElement, qn
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
-import logging
-from logging.handlers import RotatingFileHandler
-
 # 导入知识库相关模块
 try:
     from routes.knowledge_base_simple import knowledge_base_simple_bp as knowledge_base_bp
 except ImportError:
     # 如果导入失败，尝试使用相对导入
-    from backend.routes.knowledge_base_simple import knowledge_base_simple_bp as knowledge_base_bp
+    try:
+        from backend.routes.knowledge_base_simple import knowledge_base_simple_bp as knowledge_base_bp
+    except ImportError:
+        logger.warning("无法导入知识库模块")
+        knowledge_base_bp = None
 
 # 导入RAG生成相关模块
 try:
     from routes.rag_generation import rag_generation_bp
 except ImportError:
     # 如果导入失败，尝试使用相对导入
-    from backend.routes.rag_generation import rag_generation_bp
+    try:
+        from backend.routes.rag_generation import rag_generation_bp
+    except ImportError:
+        logger.warning("无法导入RAG生成模块")
+        rag_generation_bp = None
 
+# 导入AI操作相关模块
 try:
     from routes.ai_operations import ai_operations_bp
 except ImportError:
     # 如果导入失败，尝试使用相对导入
-    from backend.routes.ai_operations import ai_operations_bp
+    try:
+        from backend.routes.ai_operations import ai_operations_bp
+    except ImportError:
+        logger.warning("无法导入AI操作模块")
+        ai_operations_bp = None
 
-# 导入统一的日志管理器
+# 导入配置（使用新的安全配置模块）
 try:
-    from utils.logger import get_app_logger, setup_logging
-    setup_logging()
-    logger = get_app_logger()
+    from config.security import security_config
+    DB_CONFIG = security_config.DB_CONFIG
+    DEEPSEEK_API_URL = security_config.DEEPSEEK_API_URL
+    DEEPSEEK_API_KEY = security_config.DEEPSEEK_API_KEY
+    UPLOAD_FOLDER = security_config.get_safe_config_dict()['file']['upload_folder']
+    ALLOWED_EXTENSIONS = security_config.get_safe_config_dict()['file']['allowed_extensions']
 except ImportError:
-    # 如果导入失败，使用简单的日志配置
-    import logging
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-    logger = logging.getLogger('backend.app')
-
-try:
-    from config import DB_CONFIG, DEEPSEEK_API_URL, DEEPSEEK_API_KEY, UPLOAD_FOLDER, ALLOWED_EXTENSIONS
-except ImportError:
-    # 如果导入失败，尝试使用相对导入
-    from backend.config import DB_CONFIG, DEEPSEEK_API_URL, DEEPSEEK_API_KEY, UPLOAD_FOLDER, ALLOWED_EXTENSIONS
+    # 如果导入失败，使用默认配置
+    logger.warning("无法导入安全配置，使用默认配置")
+    DB_CONFIG = {
+        'host': '47.118.250.53',
+        'port': 3306,
+        'database': 'official_doc',
+        'user': 'official_doc',
+        'password': 'your-password',
+        'charset': 'utf8mb4'
+    }
+    DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions'
+    DEEPSEEK_API_KEY = 'your-api-key'
+    UPLOAD_FOLDER = 'temp'
+    ALLOWED_EXTENSIONS = ['.pdf', '.docx', '.doc', '.txt', '.md']
 
 app = Flask(__name__)
+
+# 使用安全配置
+try:
+    app.config['MAX_CONTENT_LENGTH'] = security_config.get_safe_config_dict()['file']['max_file_size']
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    app.config['SECRET_KEY'] = security_config.JWT_SECRET_KEY
+    app.debug = security_config.get_safe_config_dict()['debug']
+except Exception as e:
+    logger.warning(f"使用安全配置失败，使用默认配置: {e}")
+    app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    app.config['SECRET_KEY'] = 'default-secret-key'
+    app.debug = True
+
 # 配置CORS，允许特定域名访问
 CORS(app, origins=[
     'http://localhost:8081',
     'http://127.0.0.1:8081',
     'http://115.190.152.96:8081',
-    'http://chenxiaoshivivid.com.cn:8081'
+    'http://chenxiaoshivivid.com.cn:8081',
+    'http://localhost:8005',
+    'http://121.36.205.70:8005',
+    'http://chenxiaoshivivid.com.cn:8005'
 ])
 
+# 注册全局错误处理器
+try:
+    register_error_handlers(app)
+    logger.info("全局错误处理器注册成功")
+except Exception as e:
+    logger.warning(f"全局错误处理器注册失败: {e}")
+
 # 注册知识库蓝图
-app.register_blueprint(knowledge_base_bp, url_prefix='/api/knowledge')
+if knowledge_base_bp:
+    app.register_blueprint(knowledge_base_bp, url_prefix='/api/knowledge')
+    logger.info("知识库蓝图注册成功")
+else:
+    logger.warning("知识库蓝图未注册")
 
 # 注册RAG生成蓝图
-app.register_blueprint(rag_generation_bp, url_prefix='/api/rag')
+if rag_generation_bp:
+    app.register_blueprint(rag_generation_bp, url_prefix='/api/rag')
+    logger.info("RAG生成蓝图注册成功")
+else:
+    logger.warning("RAG生成蓝图未注册")
 
 # 注册AI操作蓝图
-app.register_blueprint(ai_operations_bp, url_prefix='/api/ai')
+if ai_operations_bp:
+    app.register_blueprint(ai_operations_bp, url_prefix='/api/ai')
+    logger.info("AI操作蓝图注册成功")
+else:
+    logger.warning("AI操作蓝图未注册")
 
 # 简化请求日志中间件
 @app.before_request
@@ -184,12 +228,23 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    """检查文件是否允许上传（使用新的验证器）"""
+    try:
+        return InputValidator.validate_filename(filename)
+    except Exception:
+        # 如果验证器不可用，使用原有逻辑
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_db_connection():
     """获取数据库连接"""
     try:
-        return mysql.connector.connect(**DB_CONFIG)
+        # 尝试使用安全配置
+        try:
+            from config.security import security_config
+            return mysql.connector.connect(**security_config.DB_CONFIG)
+        except ImportError:
+            # 如果无法导入安全配置，使用默认配置
+            return mysql.connector.connect(**DB_CONFIG)
     except mysql.connector.Error as err:
         logger.error(f"数据库连接错误: {err}")
         return None
@@ -450,65 +505,79 @@ def generate_content():
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
-    """上传文件并解析内容"""
+    """上传文件并解析内容（集成第一阶段优化）"""
     logger.info("接收到文件上传请求")
     
-    if 'file' not in request.files:
-        logger.error("没有文件在请求中")
-        return jsonify({'success': False, 'message': '没有文件'})
-    
-    file = request.files['file']
-    if file.filename == '':
-        logger.error("文件名为空")
-        return jsonify({'success': False, 'message': '没有选择文件'})
-    
-    logger.info(f"上传的文件: {file.filename}")
-    
-    if file and allowed_file(file.filename):
+    try:
+        # 使用新的验证器
+        if 'file' not in request.files:
+            raise create_file_upload_error("没有文件在请求中")
+        
+        file = request.files['file']
+        if file.filename == '':
+            raise create_file_upload_error("没有选择文件")
+        
+        logger.info(f"上传的文件: {file.filename}")
+        
+        # 使用新的文件验证器
         try:
+            is_valid, message = FileUploadValidator.validate_upload(file)
+            if not is_valid:
+                raise create_file_upload_error(message, file.filename)
+        except Exception:
+            # 如果新验证器不可用，使用原有验证
+            if not allowed_file(file.filename):
+                raise create_file_upload_error("不支持的文件类型", file.filename)
+        
+        # 保存并验证文件
+        try:
+            is_saved, message, file_path = FileUploadValidator.save_and_validate_file(file, UPLOAD_FOLDER)
+            if not is_saved:
+                raise create_file_upload_error(message, file.filename)
+        except Exception:
+            # 如果新保存器不可用，使用原有逻辑
             filename = secure_filename(file.filename)
-            
-            # 确保上传目录存在
             if not os.path.exists(UPLOAD_FOLDER):
                 os.makedirs(UPLOAD_FOLDER)
-            
             file_path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(file_path)
+        
+        # 解析文件内容
+        content = ""
+        try:
+            if file_path.endswith('.md'):
+                logger.info("解析Markdown文件")
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+            elif file_path.endswith('.docx'):
+                logger.info("解析Word文件")
+                doc = docx.Document(file_path)
+                content = '\n'.join([para.text for para in doc.paragraphs])
+            elif file_path.endswith('.txt'):
+                logger.info("解析文本文件")
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
             
-            content = ""
+            logger.info(f"文件解析成功，内容长度: {len(content)}")
+        except Exception as parse_error:
+            logger.error(f"文件解析错误: {parse_error}")
+            raise create_file_upload_error(f"文件解析失败: {str(parse_error)}", file.filename)
+        finally:
+            # 删除临时文件
             try:
-                if filename.endswith('.md'):
-                    logger.info("解析Markdown文件")
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                elif filename.endswith('.docx'):
-                    logger.info("解析Word文件")
-                    doc = docx.Document(file_path)
-                    content = '\n'.join([para.text for para in doc.paragraphs])
-                elif filename.endswith('.txt'):
-                    logger.info("解析文本文件")
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                
-                logger.info(f"文件解析成功，内容长度: {len(content)}")
-            except Exception as parse_error:
-                logger.error(f"文件解析错误: {parse_error}")
-                return jsonify({'success': False, 'message': f'文件解析失败: {str(parse_error)}'})
-            finally:
-                # 删除临时文件
-                try:
-                    if os.path.exists(file_path):
-                        os.remove(file_path)
-                except Exception as e:
-                    logger.error(f"删除临时文件失败: {e}")
-            
-            return jsonify({'success': True, 'content': content})
-            
-        except Exception as e:
-            logger.error(f"文件上传错误: {e}")
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+            except Exception as e:
+                logger.error(f"删除临时文件失败: {e}")
+        
+        return jsonify({'success': True, 'content': content})
+        
+    except Exception as e:
+        logger.error(f"文件上传错误: {e}")
+        if hasattr(e, 'status_code'):
+            return jsonify({'success': False, 'message': str(e)}), e.status_code
+        else:
             return jsonify({'success': False, 'message': f'文件上传失败: {str(e)}'})
-    else:
-        return jsonify({'success': False, 'message': '不支持的文件类型'})
 
 @app.route('/api/generate', methods=['POST'])
 def generate_document():

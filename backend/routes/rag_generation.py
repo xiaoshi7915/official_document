@@ -7,12 +7,53 @@ import json
 import time
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+import sys
+import os
+
+# 确保使用正确的SQLite版本
+try:
+    from utils.sqlite_init import init_sqlite
+    init_sqlite()
+except ImportError:
+    # 如果导入失败，手动设置SQLite
+    import sys
+    import os
+    from pathlib import Path
+    
+    venv_path = Path(__file__).parent.parent / "venv"
+    site_packages = list(venv_path.glob("lib/python*/site-packages"))
+    if site_packages:
+        pysqlite3_path = site_packages[0] / "pysqlite3"
+        if pysqlite3_path.exists():
+            sys.path.insert(0, str(pysqlite3_path))
+    
+    try:
+        import pysqlite3
+        import sqlite3
+        sys.modules['sqlite3'] = pysqlite3
+    except ImportError:
+        pass
 
 # 导入服务
-from services.vector_service import VectorService
-from models.knowledge_management import KnowledgeManagementModel
-from config import DEEPSEEK_API_URL, DEEPSEEK_API_KEY
-import requests
+try:
+    from services.vector_service import VectorService
+    from models.knowledge_management import KnowledgeManagementModel
+    # 使用新的安全配置模块
+    try:
+        from config.security import security_config
+        DEEPSEEK_API_URL = security_config.DEEPSEEK_API_URL
+        DEEPSEEK_API_KEY = security_config.DEEPSEEK_API_KEY
+    except ImportError:
+        # 如果安全配置不可用，使用默认值
+        DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions'
+        DEEPSEEK_API_KEY = None
+    import requests
+except ImportError as e:
+    print(f"RAG模块导入失败: {e}")
+    VectorService = None
+    KnowledgeManagementModel = None
+    DEEPSEEK_API_URL = None
+    DEEPSEEK_API_KEY = None
 
 # 导入统一的日志管理器
 try:
@@ -26,8 +67,17 @@ except ImportError:
 rag_generation_bp = Blueprint('rag_generation', __name__)
 
 # 初始化服务
-vector_service = VectorService()
-db_model = KnowledgeManagementModel()
+try:
+    if VectorService and KnowledgeManagementModel:
+        vector_service = VectorService()
+        db_model = KnowledgeManagementModel()
+    else:
+        vector_service = None
+        db_model = None
+except Exception as e:
+    print(f"RAG服务初始化失败: {e}")
+    vector_service = None
+    db_model = None
 
 @rag_generation_bp.route('/generate-with-rag', methods=['POST'])
 def generate_with_rag():
@@ -50,6 +100,13 @@ def generate_with_rag():
         JSON响应
     """
     try:
+        # 检查服务是否可用
+        if not vector_service or not db_model:
+            return jsonify({
+                'success': False,
+                'error': 'RAG服务不可用，请检查系统配置'
+            }), 503
+        
         start_time = time.time()
         
         data = request.get_json()

@@ -73,6 +73,22 @@ package-lock.json
 # Project specific
 backend/output/
 backend/temp/
+backend/vector_db/
+backend/logs/
+backend/*.log
+backend/*.pid
+backend/nohup.out
+backend/__pycache__/
+backend/*/__pycache__/
+backend/*/*/__pycache__/
+
+# Frontend
+frontend.log
+frontend.pid
+frontend/node_modules/
+frontend/dist/
+
+# Data files
 *.docx
 *.doc
 *.pdf
@@ -87,11 +103,27 @@ backend/temp/
 !frontend/public/template_images/*.png
 !templates/*.docx
 
+# AI Models
 models/
 
+# Database
 *.sqlite3
+*.db
+
+# Logs and temporary files
 *.log
 *.pid
+*.out
+*.tmp
+
+# Documentation (keep only essential)
 *.md
 !README.md
+!第一阶段优化完成报告.md
+!RAG功能修复完成报告.md
+!项目代码优化建议_总结.md
+!代码清理计划.md
+
+# Test files
 test_*.py
+*_test.py
