@@ -162,7 +162,12 @@
                   </el-form-item>
 
                   <el-form-item label="正文内容" prop="content">
-                    <el-input v-model="form.content" type="textarea" :rows="12" placeholder="请输入公文正文内容，支持Markdown格式（必填）" />
+                    <!-- 使用美化的编辑器组件 -->
+                    <EnhancedEditor 
+                      v-model="form.content" 
+                      placeholder="请输入公文正文内容，支持Markdown格式（必填）"
+                      @ai-action="handleAIAction"
+                    />
                     
                     <!-- 智能生成工具栏 -->
                     <div class="smart-generation-toolbar">
@@ -337,12 +342,13 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox, ElLoading, ElTooltip } from 'element-plus'
 import { Upload, Document, Refresh, View, Download, UploadFilled, Picture, FolderAdd, Delete, Setting } from '@element-plus/icons-vue'
 import MagicIcon from '../components/MagicIcon.vue'
+import EnhancedEditor from '../components/EnhancedEditor.vue'
 import { getTemplates, generateDocument as generateDocumentApi, uploadFile as uploadFileApi } from '../api/document'
 
 export default {
   name: 'DocumentGenerator',
   components: {
-    Upload, Document, Refresh, View, Download, UploadFilled, Picture, MagicIcon
+    Upload, Document, Refresh, View, Download, UploadFilled, Picture, MagicIcon, EnhancedEditor
   },
   setup() {
     const router = useRouter()
@@ -1203,6 +1209,13 @@ export default {
       referenceFiles.value = []
       ElMessage.success('已清空所有参考文件')
     }
+
+    // 处理AI操作
+    const handleAIAction = (actionData) => {
+      console.log('收到AI操作请求:', actionData)
+      // 这里可以添加额外的处理逻辑，比如记录操作日志等
+      // 主要的AI操作逻辑已经在EnhancedEditor组件中实现
+    }
     
     // 更新弹框中的文件列表显示
     const updateDialogFileList = () => {
@@ -1291,7 +1304,8 @@ export default {
       removeTopicReferenceFile,
       clearAllReferenceFiles,
       updateDialogFileList,
-      formatFileSize
+      formatFileSize,
+      handleAIAction
     }
   }
 }

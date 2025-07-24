@@ -269,6 +269,12 @@ except ImportError:
     # 如果导入失败，尝试使用相对导入
     from backend.routes.rag_generation import rag_generation_bp
 
+try:
+    from routes.ai_operations import ai_operations_bp
+except ImportError:
+    # 如果导入失败，尝试使用相对导入
+    from backend.routes.ai_operations import ai_operations_bp
+
 # 配置日志 - 只记录关键信息
 if not os.path.exists('logs'):
     os.makedirs('logs')
@@ -307,6 +313,9 @@ app.register_blueprint(knowledge_base_bp, url_prefix='/api/knowledge')
 
 # 注册RAG生成蓝图
 app.register_blueprint(rag_generation_bp, url_prefix='/api/rag')
+
+# 注册AI操作蓝图
+app.register_blueprint(ai_operations_bp, url_prefix='/api/ai')
 
 # 简化请求日志中间件
 @app.before_request

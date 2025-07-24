@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美化编辑器测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        .test-section h2 {
+            color: #666;
+            margin-top: 0;
+        }
+        .test-links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .test-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #409eff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .test-link:hover {
+            background: #337ecc;
+        }
+        .feature-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        .feature-list h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .feature-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .feature-list li {
+            margin-bottom: 8px;
+            color: #666;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 美化编辑器功能测试</h1>
+        
+        <div class="test-section">
+            <h2>📝 主要功能</h2>
+            <div class="feature-list">
+                <h3>✨ 新增功能</h3>
+                <ul>
+                    <li><span class="highlight">AI操作按钮</span>：续写、扩写、缩写、重写、润色</li>
+                    <li><span class="highlight">字数统计</span>：实时显示中英文字数</li>
+                    <li><span class="highlight">查找替换</span>：支持区分大小写和全字匹配</li>
+                    <li><span class="highlight">美化界面</span>：专业的Markdown编辑器样式</li>
+                    <li><span class="highlight">智能选择</span>：选中文本后自动启用AI按钮</li>
+                </ul>
+                
+                <h3>🔧 技术特性</h3>
+                <ul>
+                    <li>基于Vue 3 Composition API开发</li>
+                    <li>集成Element Plus UI组件库</li>
+                    <li>支持Markdown语法高亮</li>
+                    <li>响应式设计，适配移动端</li>
+                    <li>AI操作基于DeepSeek大模型</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 测试链接</h2>
+            <div class="test-links">
+                <a href="http://localhost:8081" class="test-link" target="_blank">
+                    🏠 访问主页
+                </a>
+                <a href="http://localhost:8081/generator" class="test-link" target="_blank">
+                    📄 文档生成页面
+                </a>
+                <a href="http://localhost:8081/editor" class="test-link" target="_blank">
+                    ✏️ 智能编辑器
+                </a>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📋 测试步骤</h2>
+            <div class="feature-list">
+                <h3>1. 基础功能测试</h3>
+                <ul>
+                    <li>访问文档生成页面</li>
+                    <li>在正文内容框中输入一些文本</li>
+                    <li>观察工具栏是否显示字数统计</li>
+                    <li>测试查找和替换功能</li>
+                </ul>
+
+                <h3>2. AI功能测试</h3>
+                <ul>
+                    <li>在编辑器中输入一段文本</li>
+                    <li>选中部分文本内容</li>
+                    <li>点击AI操作按钮（续写、扩写等）</li>
+                    <li>在弹框中确认操作并执行</li>
+                    <li>观察文本是否被正确替换</li>
+                </ul>
+
+                <h3>3. 界面美化测试</h3>
+                <ul>
+                    <li>观察编辑器是否具有专业的界面</li>
+                    <li>测试工具栏按钮的禁用/启用状态</li>
+                    <li>验证响应式布局在不同屏幕尺寸下的表现</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔍 功能说明</h2>
+            <div class="feature-list">
+                <h3>AI操作说明</h3>
+                <ul>
+                    <li><strong>续写</strong>：在选中内容基础上继续写作，保持风格一致</li>
+                    <li><strong>扩写</strong>：对选中内容进行扩展，增加细节和描述</li>
+                    <li><strong>缩写</strong>：将选中内容进行精简，保留核心信息</li>
+                    <li><strong>重写</strong>：用不同表达方式重写选中内容</li>
+                    <li><strong>润色</strong>：优化语言表达，提升文字质量</li>
+                </ul>
+
+                <h3>使用提示</h3>
+                <ul>
+                    <li>AI操作需要先选中文本内容</li>
+                    <li>可以在弹框中添加额外要求</li>
+                    <li>操作完成后会自动替换选中的文本</li>
+                    <li>支持撤销操作（Ctrl+Z）</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🚀 系统状态</h2>
+            <div class="feature-list">
+                <p><strong>前端服务</strong>：<span id="frontend-status">检查中...</span></p>
+                <p><strong>后端服务</strong>：<span id="backend-status">检查中...</span></p>
+                <p><strong>AI API</strong>：<span id="ai-status">检查中...</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 检查服务状态
+        async function checkServices() {
+            try {
+                // 检查前端
+                const frontendResponse = await fetch('http://localhost:8081');
+                document.getElementById('frontend-status').innerHTML = 
+                    frontendResponse.ok ? '✅ 正常运行' : '❌ 异常';
+            } catch (error) {
+                document.getElementById('frontend-status').innerHTML = '❌ 连接失败';
+            }
+
+            try {
+                // 检查后端
+                const backendResponse = await fetch('http://localhost:8081/api/templates');
+                document.getElementById('backend-status').innerHTML = 
+                    backendResponse.ok ? '✅ 正常运行' : '❌ 异常';
+            } catch (error) {
+                document.getElementById('backend-status').innerHTML = '❌ 连接失败';
+            }
+
+            try {
+                // 检查AI API
+                const aiResponse = await fetch('http://localhost:8081/api/ai/text-operation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'test', selectedText: 'test' })
+                });
+                document.getElementById('ai-status').innerHTML = 
+                    aiResponse.status === 400 ? '✅ 正常运行' : '❌ 异常';
+            } catch (error) {
+                document.getElementById('ai-status').innerHTML = '❌ 连接失败';
+            }
+        }
+
+        // 页面加载时检查服务状态
+        window.addEventListener('load', checkServices);
+    </script>
+</body>
+</html> 
