@@ -168,19 +168,21 @@
                     <div class="smart-generation-toolbar">
                       <div class="toolbar-section">
                         <div class="section-title">智能生成</div>
-                                      <div class="button-group">
-                <el-button type="primary" size="small" @click="generateContentFromTopic">
-                  <el-icon class="button-icon"><MagicIcon /></el-icon>
-                  从主题生成正文
-                </el-button>
-                <el-button type="success" size="small" @click="uploadFile">
-                  <el-icon class="button-icon"><Upload /></el-icon>
-                  上传文件作为正文
-                </el-button>
-              </div>
+                        <div class="button-group">
+                          <el-button type="primary" size="small" @click="generateContentFromTopic">
+                            <el-icon class="button-icon"><MagicIcon /></el-icon>
+                            从主题生成正文
+                          </el-button>
+                          <el-button type="warning" size="small" @click="generateOutlineFromTopic">
+                            <el-icon class="button-icon"><List /></el-icon>
+                            从主题生成大纲
+                          </el-button>
+                          <el-button type="success" size="small" @click="uploadFile">
+                            <el-icon class="button-icon"><Upload /></el-icon>
+                            上传文件作为正文
+                          </el-button>
+                        </div>
                       </div>
-                      
-
                     </div>
                   </el-form-item>
                 </el-collapse-item>
@@ -964,6 +966,128 @@ export default {
       }
     }
 
+    // 从主题生成大纲
+    const generateOutlineFromTopic = async () => {
+      console.log('generateOutlineFromTopic 函数被调用')
+      
+      // 重置临时数据
+      topicInput.value = ''
+      topicReferenceFiles.value = []
+      
+      console.log('准备创建弹框')
+      
+      // 创建自定义对话框
+      const formValues = await ElMessageBox({
+        title: '从主题生成大纲',
+        message: h('div', { class: 'topic-generator-dialog' }, [
+          // 主题输入区域
+          h('div', { class: 'dialog-section' }, [
+            h('div', { class: 'section-header' }, [
+              h('span', { class: 'section-title' }, '📝 公文主题')
+            ]),
+            h('textarea', {
+              value: topicInput.value,
+              onInput: (e) => topicInput.value = e.target.value,
+              placeholder: '请输入公文主题或关键内容，支持多行输入\n\n例如：\n关于推进数字化转型工作的报告\n\n请详细描述您要生成的公文主题、背景、要求等',
+              rows: 8,
+              class: 'topic-textarea',
+              style: 'width: 100%; min-width: 700px; padding: 16px; border: 2px solid #e4e7ed; border-radius: 8px; font-size: 14px; line-height: 1.6; resize: vertical; box-sizing: border-box;'
+            })
+          ]),
+          
+          // 参考文件区域
+          h('div', { class: 'dialog-section' }, [
+            h('div', { class: 'section-header' }, [
+              h('span', { class: 'section-title' }, '📁 参考文件（可选）')
+            ]),
+            h('div', { class: 'reference-section' }, [
+              h('button', {
+                type: 'button',
+                onClick: () => uploadReferenceFileForTopic(),
+                style: 'background: #409eff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 8px;'
+              }, '📤 上传文件作为参考'),
+              h('div', { class: 'upload-tip' }, [
+                h('small', '支持格式：PDF、DOCX、DOC、TXT、MD、XLSX、XLS、CSV（最大50MB）')
+              ]),
+              
+              // 已上传的参考文件列表
+              h('div', { id: 'topic-reference-files-container' })
+            ])
+          ])
+        ]),
+        showCancelButton: true,
+        confirmButtonText: '开始生成',
+        cancelButtonText: '取消',
+        customClass: 'topic-generator-message-box',
+        customStyle: {
+          width: '750px',
+          maxWidth: '95vw'
+        },
+        beforeClose: (action, instance, done) => {
+          if (action === 'confirm' && !topicInput.value.trim()) {
+            ElMessage.warning('请输入主题')
+            return
+          }
+          done()
+        }
+      })
+
+      console.log('弹框关闭，formValues:', formValues)
+      console.log('topicInput.value:', topicInput.value)
+      console.log('topicInput.value.trim():', topicInput.value.trim())
+
+      if (formValues === 'confirm' && topicInput.value.trim()) {
+        try {
+          console.log('开始生成大纲，主题:', topicInput.value)
+          console.log('参考文件:', topicReferenceFiles.value)
+          
+          const loading = ElLoading.service({
+            lock: true,
+            text: '正在生成大纲...',
+            background: 'rgba(0, 0, 0, 0.7)'
+          })
+
+          const requestBody = {
+            topic: topicInput.value,
+            document_type: getTemplateName(form.templateType),
+            title: topicInput.value,
+            reference_file_ids: topicReferenceFiles.value.map(f => f.file_id),
+            user_id: 'anonymous',
+            generation_type: 'outline'  // 指定生成类型为大纲
+          }
+          
+          console.log('发送大纲生成请求体:', requestBody)
+
+          const response = await fetch('/api/rag/generate-outline', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+          })
+
+          console.log('收到响应状态:', response.status)
+          const result = await response.json()
+          console.log('收到响应数据:', result)
+          
+          loading.close()
+
+          if (result.success) {
+            form.content = result.content
+            ElMessage.success('大纲生成成功')
+            // 清空临时数据
+            topicInput.value = ''
+            topicReferenceFiles.value = []
+          } else {
+            ElMessage.error(result.message || '大纲生成失败')
+          }
+        } catch (error) {
+          console.error('生成大纲失败:', error)
+          ElMessage.error('大纲生成失败，请稍后再试')
+        }
+      }
+    }
+
     // 返回首页函数
     const goHome = () => {
       router.push('/')
@@ -1158,6 +1282,7 @@ export default {
       templateImages,
       generateTitleFromContent,
       generateContentFromTopic,
+      generateOutlineFromTopic,
       previewTemplate,
       goHome,
       uploadReferenceFile,
