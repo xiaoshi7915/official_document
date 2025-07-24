@@ -353,7 +353,7 @@ export default {
     const recentDocuments = ref([])
     const uploadUrl = '/api/upload'
     const uploadHeaders = { 'X-Requested-With': 'XMLHttpRequest' }
-    const activeCollapse = ref(['body']) // 默认展开主体部分
+    const activeCollapse = ref(['header', 'body', 'footer']) // 默认展开所有部分（版头、主体、版记）
 
     const form = reactive({
       templateType: '',
@@ -364,9 +364,9 @@ export default {
       urgencyLevel: '一般',
       sender: '',
       senderSymbol: '',
-      senderCode: '',
+      senderCode: '机关代字',
       year: new Date().getFullYear().toString(),
-      serialNumber: '',
+      serialNumber: '1',
       // 主体字段
       title: '',
       recipient: '',

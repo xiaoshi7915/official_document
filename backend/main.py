@@ -673,7 +673,7 @@ def generate_document():
                 # 版头字段 - 支持现有格式
                 '××★1年': metadata.get('year', '2025年'),
                 '特急': metadata.get('urgencyLevel', ''),
-                '机关代字(20××)×号': f"{metadata.get('senderCode', '')}({metadata.get('year', '2025')}){metadata.get('serialNumber', '')}号",
+                '机关代字(20××)×号': f"{metadata.get('senderCode', '机关代字')}({metadata.get('year', '2025')}){metadata.get('serialNumber', '')}号",
                 '签发人:姓名一姓名二': f"签发人:{metadata.get('senderSignature', '')}",
                 
                 # 主体字段 - 支持现有格式
